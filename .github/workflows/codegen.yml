@@ -1,0 +1,39 @@
+name: Codegeneration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install openapi-generator-cli
+        run: npm install -g @openapitools/openapi-generator-cli
+
+      - name: Generate backend
+        run: ./ci/codegen/generate-backend.sh
+
+      - name: Generate frontend
+        run: ./ci/codegen/generate-frontend.sh
+
+      - name: Check for uncommitted changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "❌ Codegen produced differences! SDD not stable."
+            git status --porcelain
+            exit 1
+          fi
+
+          echo "✓ Codegen stable – no differences."
