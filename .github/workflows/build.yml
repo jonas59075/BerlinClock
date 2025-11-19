@@ -3,16 +3,12 @@ name: Build
 on:
   workflow_run:
     workflows: ["Codegeneration"]
-    types:
-      - completed
-
+    types: [completed]
 
 jobs:
   build-backend:
-if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,14 +19,11 @@ if: ${{ github.event.workflow_run.conclusion == 'success' }}
           go-version: 1.22
 
       - name: Build backend
-        run: |
-          cd backend/gen/api
-          go build ./...
+        run: cd backend/gen/api && go build ./...
 
   build-frontend:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +36,5 @@ if: ${{ github.event.workflow_run.conclusion == 'success' }}
       - name: Install Elm
         run: npm install -g elm
 
-      - name: Build Elm API
-        run: |
-          cd frontend
-          elm make src/Api/Api.elm --output=/dev/null
+      - name: Build Elm client
+        run: cd frontend && elm make src/Api/Api.elm --output=/dev/null
