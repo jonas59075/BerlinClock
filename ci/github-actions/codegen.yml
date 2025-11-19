@@ -1,0 +1,36 @@
+name: Codegeneration
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install OpenAPI Generator
+        run: |
+          npm install @openapitools/openapi-generator-cli -g
+
+      - name: Generate Backend Code (Go)
+        run: |
+          chmod +x ci/codegen/generate-backend.sh
+          ./ci/codegen/generate-backend.sh
+
+      - name: Generate Frontend Code (Elm)
+        run: |
+          chmod +x ci/codegen/generate-frontend.sh
+          ./ci/codegen/generate-frontend.sh
+
+      - name: Store generated code as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-code
+          path: |
+            backend/gen
+            frontend/src/Api
