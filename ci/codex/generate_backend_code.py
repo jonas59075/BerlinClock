@@ -1,127 +1,85 @@
-#!/usr/bin/env python3
 import argparse
-import os
-import sys
+import openai
 from pathlib import Path
 
-try:
-    from openai import OpenAI
-except ImportError:
-    print("Missing dependency: openai\nInstall with: pip install openai", file=sys.stderr)
-    sys.exit(1)
+# ------------------------------------------------------------
+# LOAD DOMAIN SPEC
+# ------------------------------------------------------------
+def load_domain_spec():
+    spec_path = Path("spec/berlin_clock_backend.domain.yaml")
+    if not spec_path.exists():
+        raise FileNotFoundError(f"Domain spec not found: {spec_path}")
+    return spec_path.read_text(encoding="utf-8")
 
 
-def read_text(path: Path, description: str) -> str:
-    if not path.exists():
-        print(f"[WARN] {description} not found at {path}", file=sys.stderr)
-        return ""
-    return path.read_text(encoding="utf-8")
+# ------------------------------------------------------------
+# LOAD PROMPT TEMPLATE
+# ------------------------------------------------------------
+def load_prompt_template():
+    prompt_path = Path("ci/codex/prompts/backend.txt")
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {prompt_path}")
+    return prompt_path.read_text(encoding="utf-8")
 
 
-def build_prompt(prompt_template: str, spec: str, domain: str, api_service: str) -> str:
-    parts = [
-        prompt_template.strip(),
-        "",
-        "=== OPENAPI SPECIFICATION (YAML) ===",
-        spec.strip(),
-        "",
-        "=== DOMAIN SPECIFICATION (MARKDOWN) ===",
-        domain.strip(),
-        "",
-        "=== GENERATED GO API SERVICE (backend/gen/api/go/api_default_service.go) ===",
-        api_service.strip(),
-        "",
-        "=== TASK ===",
-        "Generate the complete Go backend implementation as requested above.",
-        "Return ONLY Go code, no markdown fences, no explanations."
-    ]
-    return "\n".join(parts)
+# ------------------------------------------------------------
+# BUILD FINAL PROMPT
+# ------------------------------------------------------------
+def build_prompt():
+    domain_spec = load_domain_spec()
+    template = load_prompt_template()
+
+    final_prompt = template.replace("{{DOMAIN_SPEC}}", domain_spec)
+    return final_prompt
 
 
-def generate_code(model: str, prompt: str) -> str:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("ERROR: Environment variable OPENAI_API_KEY is not set.", file=sys.stderr)
-        sys.exit(1)
+# ------------------------------------------------------------
+# CALL OPENAI
+# ------------------------------------------------------------
+def generate_code(model, prompt):
+    client = openai.OpenAI()
 
-    client = OpenAI()
+    print("[INFO] Calling OpenAI API for backend code generation...")
 
-    response = client.responses.create(
+    response = client.chat.completions.create(
         model=model,
-        input=prompt,
-        max_output_tokens=8000,
+        messages=[
+            {"role": "system", "content": "You are Codex in strict SDD mode."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
     )
 
-    # 1) DIRECT text output
-    if hasattr(response, "output_text") and response.output_text:
-        return response.output_text
-
-    # 2) Iterate over response.output items
-    for item in response.output:
-        # Text in message.content[*].text
-        if item.type == "message":
-            for c in item.content:
-                if c.type == "text":
-                    return c.text
-
-        # Text as plain text block
-        if item.type == "output_text" and hasattr(item, "text"):
-            return item.text
-
-        # Fallback: if item has attribute "text"
-        if hasattr(item, "text"):
-            return item.text
-
-    print("ERROR: No text output found in any ResponseOutput variant.", file=sys.stderr)
-    sys.exit(1)
+    # Extract text output
+    content = response.choices[0].message["content"]
+    if not content or len(content.strip()) == 0:
+        raise RuntimeError("ERROR: No text output from model.")
+    
+    return content
 
 
+# ------------------------------------------------------------
+# WRITE GENERATED GO CODE
+# ------------------------------------------------------------
+def write_output(go_code: str):
+    target_path = Path("backend/src/berlin_clock_backend.generated.go")
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(go_code, encoding="utf-8")
+
+    print(f"[INFO] Generated backend code written to {target_path}")
 
 
+# ------------------------------------------------------------
+# MAIN
+# ------------------------------------------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Generate Go backend code from spec + domain using OpenAI Codex-like model.")
-    parser.add_argument("--spec", required=True, help="Path to OpenAPI spec (YAML)")
-    parser.add_argument("--domain", required=True, help="Path to domain spec (Markdown)")
-    parser.add_argument("--out", required=True, help="Output directory for generated Go code")
-    parser.add_argument(
-        "--model",
-        default="gpt-4.1-mini",
-        help="OpenAI model name to use for code generation"
-    )
-    parser.add_argument(
-        "--prompt",
-        default="ci/codex/prompts/backend-impl.prompt",
-        help="Path to the Codex prompt template"
-    )
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", required=True)
     args = parser.parse_args()
 
-    spec_path = Path(args.spec)
-    domain_path = Path(args.domain)
-    prompt_path = Path(args.prompt)
-    api_service_path = Path("backend/gen/api/go/api_default_service.go")
-    out_dir = Path(args.out)
-
-    if not out_dir.exists():
-        out_dir.mkdir(parents=True, exist_ok=True)
-
-    prompt_template = read_text(prompt_path, "Prompt template")
-    spec_text = read_text(spec_path, "OpenAPI spec")
-    domain_text = read_text(domain_path, "Domain spec")
-    api_service_text = read_text(api_service_path, "Generated API service")
-
-    if not spec_text or not domain_text or not api_service_text or not prompt_template:
-        print("ERROR: Missing required input content. Aborting.", file=sys.stderr)
-        sys.exit(1)
-
-    full_prompt = build_prompt(prompt_template, spec_text, domain_text, api_service_text)
-
-    print("[INFO] Calling OpenAI API for backend code generation...", file=sys.stderr)
-    code = generate_code(args.model, full_prompt)
-
-    out_file = out_dir / "berlin_clock_backend.generated.go"
-    out_file.write_text(code, encoding="utf-8")
-    print(f"[INFO] Generated backend code written to {out_file}", file=sys.stderr)
+    prompt = build_prompt()
+    code = generate_code(args.model, prompt)
+    write_output(code)
 
 
 if __name__ == "__main__":
