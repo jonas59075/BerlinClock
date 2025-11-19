@@ -26,9 +26,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          python3 ci/codex/generate_backend_code.py \
-            --model gpt-4.1 \
-            --prompt-file spec/berlin_clock_backend.domain.yaml
+          python3 ci/codex/generate_backend_code.py --model gpt-4.1
 
       - name: Git status before diff
         run: git status
