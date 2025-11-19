@@ -1,0 +1,66 @@
+name: Codex Hybrid SDD Codegeneration
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "spec/*.yaml"
+      - "docs/domain/*.md"
+      - "ci/codex/prompts/*.prompt"
+
+jobs:
+  codex-generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Install Node + OpenAPI Generator CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install -g @openapitools/openapi-generator-cli
+
+      - name: Run OpenAPI codegeneration (Models & Interfaces)
+        run: ./ci/codegen/generate-backend.sh
+
+      - name: Install Python dependencies
+        run: pip3 install openai --quiet
+
+      - name: Generate Backend Code Using Codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python3 ci/codex/generate_backend_code.py \
+            --spec spec/berlin-clock.yaml \
+            --domain docs/domain/berlin-clock.md \
+            --out backend/src
+
+      - name: SDD Diff Check
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "❌ Codex generation produced differences. SDD not stable."
+            git status
+            exit 1
+          fi
+
+      - name: Build Backend
+        run: |
+          cd backend/src
+          go build ./...
+
+      - name: Create PR for Codex Output
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex-update
+          commit-message: "codex(backend): update generated implementation"
+          title: "Codex: Backend implementation update"
+          body: |
+            Automated backend codegeneration from OpenAPI + Domain specs.
+            Deterministic output validated via SDD.
