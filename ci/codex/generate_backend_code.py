@@ -46,22 +46,25 @@ def generate_code(model: str, prompt: str) -> str:
 
     client = OpenAI()
 
-    # Du kannst das Modell später anpassen (z.B. gpt-4.1)
+    # API call im neuen Responses-Format
     response = client.responses.create(
         model=model,
         input=prompt,
-        max_output_tokens=6000,
+        max_output_tokens=8000,
     )
 
-    # Wir nehmen den ersten text-Output
+    # Neues Output-Format:
+    # response.output -> Liste mit Items
+    # Items vom Typ 'message' enthalten content[]
     for item in response.output:
         if item.type == "message":
-            for content in item.message.content:
-                if content.type == "text":
-                    return content.text
+            for c in item.content:
+                if c.type == "text":
+                    return c.text
 
     print("ERROR: No text output from model.", file=sys.stderr)
     sys.exit(1)
+
 
 
 def main():
