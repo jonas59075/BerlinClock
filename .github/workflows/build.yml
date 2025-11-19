@@ -1,11 +1,16 @@
 name: Build
 
 on:
-  push:
-  pull_request:
+  workflow_run:
+    workflows: ["Codegeneration"]
+    types:
+      - completed
+
 
 jobs:
   build-backend:
+if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +28,7 @@ jobs:
           go build ./...
 
   build-frontend:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
