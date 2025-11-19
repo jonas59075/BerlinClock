@@ -1,50 +1,39 @@
+#!/usr/bin/env python3
 import argparse
-from pathlib import Path
-import openai
+import os
+from openai import OpenAI
+
+# Initialize OpenAI client
+client = OpenAI()
 
 
-# ------------------------------------------------------------
-# Load domain specification
-# ------------------------------------------------------------
-def load_domain_spec() -> str:
-    spec_path = Path("spec/berlin_clock_backend.domain.yaml")
-    if not spec_path.exists():
-        raise FileNotFoundError(f"Domain spec not found: {spec_path}")
-    return spec_path.read_text(encoding="utf-8")
+PROMPT_FILE = "ci/codex/prompts/backend.txt"
 
 
-# ------------------------------------------------------------
-# Load prompt template
-# ------------------------------------------------------------
-def load_prompt() -> str:
-    prompt_path = Path("ci/codex/prompts/backend.txt")
-    if not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt template not found: {prompt_path}")
-    return prompt_path.read_text(encoding="utf-8")
+def load_prompt():
+    if not os.path.exists(PROMPT_FILE):
+        raise FileNotFoundError(f"Prompt template not found: {PROMPT_FILE}")
+
+    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-# ------------------------------------------------------------
-# Merge prompt + spec
-# ------------------------------------------------------------
-def build_prompt() -> str:
-    template = load_prompt()
-    domain_spec = load_domain_spec()
-    return template.replace("{{DOMAIN_SPEC}}", domain_spec)
+def build_prompt():
+    base_prompt = load_prompt()
+    return base_prompt
 
 
-# ------------------------------------------------------------
-# Call OpenAI Codex/Chat Completions API
-# ------------------------------------------------------------
 def generate_code(model, prompt):
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": "You are Codex generating Go backend code."},
+            {"role": "system", "content": "You are Codex generating backend Go code for the Berlin Clock."},
             {"role": "user", "content": prompt}
-        ]
+        ],
+        temperature=0.0
     )
 
-    # New OpenAI API format
+    # New OpenAI response format
     content = response.choices[0].message.content
 
     if not content:
@@ -53,29 +42,24 @@ def generate_code(model, prompt):
     return content
 
 
+def write_output(code):
+    os.makedirs("backend/src", exist_ok=True)
+    target = "backend/src/berlin_clock_backend.generated.go"
 
-# ------------------------------------------------------------
-# Write generated Go code
-# ------------------------------------------------------------
-def write_code(go_code: str):
-    target_path = Path("backend/src/berlin_clock_backend.generated.go")
-    target_path.parent.mkdir(parents=True, exist_ok=True)
-    target_path.write_text(go_code, encoding="utf-8")
+    with open(target, "w", encoding="utf-8") as f:
+        f.write(code)
 
-    print(f"[INFO] Generated backend code written to: {target_path}")
+    print(f"[INFO] Generated backend code written to {target}")
 
 
-# ------------------------------------------------------------
-# MAIN
-# ------------------------------------------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Generate backend code via Codex (SDD mode).")
-    parser.add_argument("--model", required=True, help="OpenAI model to use (e.g. gpt-4.1)")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", required=True, help="OpenAI model to use")
     args = parser.parse_args()
 
     prompt = build_prompt()
     code = generate_code(args.model, prompt)
-    write_code(code)
+    write_output(code)
 
 
 if __name__ == "__main__":
