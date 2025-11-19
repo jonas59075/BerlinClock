@@ -46,24 +46,35 @@ def generate_code(model: str, prompt: str) -> str:
 
     client = OpenAI()
 
-    # API call im neuen Responses-Format
     response = client.responses.create(
         model=model,
         input=prompt,
         max_output_tokens=8000,
     )
 
-    # Neues Output-Format:
-    # response.output -> Liste mit Items
-    # Items vom Typ 'message' enthalten content[]
+    # 1) DIRECT text output
+    if hasattr(response, "output_text") and response.output_text:
+        return response.output_text
+
+    # 2) Iterate over response.output items
     for item in response.output:
+        # Text in message.content[*].text
         if item.type == "message":
             for c in item.content:
                 if c.type == "text":
                     return c.text
 
-    print("ERROR: No text output from model.", file=sys.stderr)
+        # Text as plain text block
+        if item.type == "output_text" and hasattr(item, "text"):
+            return item.text
+
+        # Fallback: if item has attribute "text"
+        if hasattr(item, "text"):
+            return item.text
+
+    print("ERROR: No text output found in any ResponseOutput variant.", file=sys.stderr)
     sys.exit(1)
+
 
 
 
