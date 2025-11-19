@@ -50,6 +50,16 @@ jobs:
             exit 1
           fi
 
+      - name: Always create PR with generated files (even if diff fails)
+        if: always()
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex-update
+          commit-message: "codex: generated backend code (non-stable run)"
+          title: "Codex: generated backend code"
+          body: "Generated backend code from Codex during unstable SDD run"
+
+
       - name: Build Backend
         run: |
           cd backend/src
