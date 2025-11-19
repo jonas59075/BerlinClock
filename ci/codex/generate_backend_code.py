@@ -35,26 +35,23 @@ def build_prompt() -> str:
 # ------------------------------------------------------------
 # Call OpenAI Codex/Chat Completions API
 # ------------------------------------------------------------
-def generate_code(model: str, prompt: str) -> str:
-    client = openai.OpenAI()
-
-    print("[INFO] Calling OpenAI API for backend code generation...")
-
+def generate_code(model, prompt):
     response = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": "You are Codex in strict SDD mode."},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0,
+            {"role": "system", "content": "You are Codex generating Go backend code."},
+            {"role": "user", "content": prompt}
+        ]
     )
 
-    # Extract final code
-    content = response.choices[0].message["content"]
-    if not content or not content.strip():
-        raise RuntimeError("ERROR: No text output from model.")
+    # New OpenAI API format
+    content = response.choices[0].message.content
+
+    if not content:
+        raise ValueError("No text output from model.")
 
     return content
+
 
 
 # ------------------------------------------------------------
