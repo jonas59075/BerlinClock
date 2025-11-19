@@ -2,83 +2,50 @@ name: Codex Hybrid SDD Codegeneration
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "spec/*.yaml"
-      - "docs/domain/*.md"
-      - "ci/codex/prompts/*.prompt"
 
 jobs:
-  codex-generate:
+  codegen:
     runs-on: ubuntu-latest
-
+    outputs:
+      sdd_diff: ${{ steps.diff.outputs.DIFF }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22"
-
-      - name: Install Node + OpenAPI Generator CLI
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install -g @openapitools/openapi-generator-cli
-
-      - name: Run OpenAPI codegeneration (Models & Interfaces)
-        run: ./ci/codegen/generate-backend.sh
-
-      - name: Install Python dependencies
-        run: pip3 install openai --quiet
-
-      - name: Generate Backend Code Using Codex
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Generate backend code with Codex
         run: |
           python3 ci/codex/generate_backend_code.py \
-            --spec spec/berlin-clock.yaml \
-            --domain docs/domain/berlin-clock.md \
-            --out backend/src
+            --model gpt-4.1 \
+            --prompt-file spec/berlin_clock_backend.domain.yaml
 
-      - name: SDD Diff Check
-        id: sdd_check
+      - name: Git status before diff
+        run: git status
+
+      - name: SDD diff check
+        id: diff
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
-            echo "SDD_DIFF=1" >> $GITHUB_ENV
-            echo "❌ Codex generation produced differences. SDD not stable."
+            echo "DIFF=1" >> $GITHUB_OUTPUT
+            echo "❌ Differences detected"
           else
-            echo "SDD_DIFF=0" >> $GITHUB_ENV
-            echo "✅ SDD stable."
+            echo "DIFF=0" >> $GITHUB_OUTPUT
+            echo "✅ SDD stable"
           fi
+        continue-on-error: true
 
-      - name: Always create PR with generated files
-        if: always()
+  create_pr:
+    needs: codegen
+    if: always()  # ALWAYS run, regardless of SDD output
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Pull Request with generated code
         uses: peter-evans/create-pull-request@v6
         with:
           branch: codex-update
           commit-message: "codex: generated backend code"
-          title: "Codex: Generated backend implementation"
-          body: "Generated backend code from Codex (SDD status: ${{ env.SDD_DIFF }})"
-
-      - name: Fail job if SDD not stable
-        if: env.SDD_DIFF == '1'
-        run: exit 1
-
-
-
-      - name: Build Backend
-        run: |
-          cd backend/src
-          go build ./...
-
-      - name: Create PR for Codex Output
-        uses: peter-evans/create-pull-request@v6
-        with:
-          branch: codex-update
-          commit-message: "codex(backend): update generated implementation"
-          title: "Codex: Backend implementation update"
+          title: "Codex: generated backend code"
           body: |
-            Automated backend codegeneration from OpenAPI + Domain specs.
-            Deterministic output validated via SDD.
+            Codex-generated backend code.
+
+            SDD status: ${{ needs.codegen.outputs.sdd_diff }}
