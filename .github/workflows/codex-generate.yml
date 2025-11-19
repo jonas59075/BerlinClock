@@ -43,21 +43,29 @@ jobs:
             --out backend/src
 
       - name: SDD Diff Check
+        id: sdd_check
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
+            echo "SDD_DIFF=1" >> $GITHUB_ENV
             echo "❌ Codex generation produced differences. SDD not stable."
-            git status
-            exit 1
+          else
+            echo "SDD_DIFF=0" >> $GITHUB_ENV
+            echo "✅ SDD stable."
           fi
 
-      - name: Always create PR with generated files (even if diff fails)
+      - name: Always create PR with generated files
         if: always()
         uses: peter-evans/create-pull-request@v6
         with:
           branch: codex-update
-          commit-message: "codex: generated backend code (non-stable run)"
-          title: "Codex: generated backend code"
-          body: "Generated backend code from Codex during unstable SDD run"
+          commit-message: "codex: generated backend code"
+          title: "Codex: Generated backend implementation"
+          body: "Generated backend code from Codex (SDD status: ${{ env.SDD_DIFF }})"
+
+      - name: Fail job if SDD not stable
+        if: env.SDD_DIFF == '1'
+        run: exit 1
+
 
 
       - name: Build Backend
