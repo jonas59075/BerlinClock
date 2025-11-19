@@ -1,0 +1,97 @@
+domain: BerlinClockBackend
+version: 1.0.0
+status: stable
+
+purpose: >
+  Dieses Dokument beschreibt die vollständige Business-Logik zur Berechnung
+  der Berlin-Uhr. Die Logik ist deterministisch, rein funktional und enthält
+  keine externen Abhängigkeiten. Sie dient als Grundlage für Codex-Codegenerierung
+  sowie für automatisierte Tests im Rahmen des SDD-Prozesses.
+
+context:
+  description: >
+    Die Berlin-Uhr (Mengenlehreuhr) zeigt die aktuelle Uhrzeit anhand
+    eines spezifischen Lampensystems an. Die Uhr hat vier Ebenen
+    für Stunden/Minuten und eine einzelne blinkende Sekunde.
+
+inputs:
+  - name: time
+    type: LocalTime
+    format: HH:MM:SS
+    example: "13:17:01"
+    description: >
+      Die zu konvertierende Uhrzeit.
+
+outputs:
+  - name: BerlinClockState
+    type: object
+    description: >
+      Objekt mit allen Lampen-Zuständen, farbcodiert (Y=Yellow, R=Red, O=Off)
+    fields:
+      seconds: string
+      hours_top: string
+      hours_bottom: string
+      minutes_top: string
+      minutes_bottom: string
+
+business_rules:
+  seconds:
+    logic: >
+      Die Sekunde leuchtet GELB (Y), wenn die aktuelle Sekunde gerade ist (sec % 2 == 0),
+      sonst AUS (O).
+    examples:
+      - "00" -> "Y"
+      - "01" -> "O"
+      - "58" -> "Y"
+
+  hours_top:
+    description: 5-Stunden-Balken (4 Lampen)
+    logic: >
+      Jede Lampe steht für 5 Stunden. Anzahl = floor(hours / 5).
+      Die Lampen sind immer ROT (R).
+    length: 4
+    examples:
+      - "13" -> "R R O O"  (2 Lampen)
+      - "23" -> "R R R R"  (4 Lampen)
+
+  hours_bottom:
+    description: 1-Stunden-Balken (4 Lampen)
+    logic: >
+      Jede Lampe steht für 1 Stunde. Anzahl = hours % 5.
+      Lampenfarbe = ROT (R).
+    length: 4
+    examples:
+      - "13" -> "R R R O"  (3 Lampen)
+      - "23" -> "R R R O"  (3 Lampen)
+
+  minutes_top:
+    description: 5-Minuten-Balken (11 Lampen)
+    logic: >
+      Jede Lampe steht für 5 Minuten. Anzahl = floor(minutes / 5).
+      Lampenfarbe:
+      - Y für normale 5-Minuten-Schritte
+      - R bei den 3., 6. und 9. Lampe (15, 30, 45 Minuten)
+    length: 11
+    examples:
+      - "17" -> "Y Y R O O O O O O O O"
+      - "59" -> "Y Y R Y Y R Y Y R Y Y"
+
+  minutes_bottom:
+    description: 1-Minuten-Balken (4 Lampen)
+    logic: >
+      Jede Lampe steht für 1 Minute. Anzahl = minutes % 5.
+      Lampenfarbe = GELB (Y).
+    length: 4
+    examples:
+      - "17" -> "Y Y O O"
+      - "59" -> "Y Y Y Y"
+
+constraints:
+  - rule: "Time must be valid (00–23, 00–59, 00–59)."
+  - rule: "Output strings must have fixed lengths matching lamp rows."
+
+non_functional:
+  - deterministic
+  - pure_functional
+  - zero_dependencies
+  - SDD: all updates require regeneration via Codex
