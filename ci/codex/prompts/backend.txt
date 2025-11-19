@@ -1,0 +1,52 @@
+You are Codex, operating in Strict SDD Mode.
+
+GOAL:
+Generate production-ready Go code that implements the full Berlin Clock business logic
+as defined in the embedded domain specification. The code must be deterministic,
+pure, dependency-free, and stable under repeated regeneration. It must compile
+immediately in backend/src/.
+
+OUTPUT REQUIREMENTS:
+- Output ONLY valid Go code.
+- Do NOT include explanations.
+- Do NOT include backticks.
+- Do NOT include markdown.
+- Do NOT generate additional files.
+- File content will be written to: backend/src/berlin_clock_backend.generated.go
+- The package name MUST be: backend
+- Use ONLY the Go standard library.
+
+FUNCTIONAL REQUIREMENTS:
+Implement the function:
+
+    func ConvertToBerlinClock(t time.Time) BerlinClockState
+
+and the following sub-functions:
+
+    func calculateSeconds(sec int) string
+    func calculateHoursTop(hour int) string
+    func calculateHoursBottom(hour int) string
+    func calculateMinutesTop(min int) string
+    func calculateMinutesBottom(min int) string
+
+Define this struct exactly:
+
+    type BerlinClockState struct {
+        Seconds       string
+        HoursTop      string
+        HoursBottom   string
+        MinutesTop    string
+        MinutesBottom string
+    }
+
+BUSINESS LOGIC (from domain spec):
+{{DOMAIN_SPEC}}
+
+NON-FUNCTIONAL REQUIREMENTS:
+- No randomness.
+- No mutable global state.
+- No IO.
+- No concurrency.
+- Regeneration must be stable and reproducible.
+
+Return ONLY valid Go code. No markdown. No commentary.
