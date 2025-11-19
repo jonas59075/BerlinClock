@@ -37,13 +37,6 @@ jobs:
       - name: Install Elm
         run: npm install -g elm
 
-      - name: Install Elm deps
-        run: |
-          cd frontend
-          elm install elm/http --yes
-          elm install elm/url --yes
-          elm install elm/json --yes
-
       - name: Build Elm API
         run: |
           cd frontend
