@@ -1,0 +1,74 @@
+openapi: 3.0.3
+
+info:
+  title: Berlin Clock API
+  version: 1.0.0
+  description: API für die Berechnung und Darstellung der Berliner Uhr.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /time:
+    get:
+      summary: Liefert die aktuelle Uhrzeit des Systems.
+      responses:
+        '200':
+          description: Systemzeit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeResponse'
+
+  /berlin-clock:
+    get:
+      summary: Liefert den aktuellen Status der Berliner Uhr.
+      responses:
+        '200':
+          description: Status der Berliner Uhr
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BerlinClockState'
+
+components:
+  schemas:
+
+    TimeResponse:
+      type: object
+      properties:
+        hour:
+          type: integer
+        minute:
+          type: integer
+        second:
+          type: integer
+
+    BerlinClockState:
+      type: object
+      description: Darstellung aller 5 Reihen der Berliner Uhr.
+      properties:
+        secondsLamp:
+          type: string
+          enum: [Y, O]
+        fiveHoursRow:
+          type: array
+          items:
+            type: string
+            enum: [R, O]
+        singleHoursRow:
+          type: array
+          items:
+            type: string
+            enum: [R, O]
+        fiveMinutesRow:
+          type: array
+          items:
+            type: string
+            enum: [Y, R, O]
+        singleMinutesRow:
+          type: array
+          items:
+            type: string
+            enum: [Y, O]
+
