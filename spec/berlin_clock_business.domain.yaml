@@ -1,65 +1,124 @@
-version: 1.0
-type: domain-spec
-component: backend
-purpose: Berlin Clock Business Logic
+domain: BerlinClock
+version: 1.0.0
+description: |
+  Formalisierte Business-Domain-Spezifikation für die Berliner Uhr.
+  Diese Spezifikation beschreibt alle Regeln, Modelle, Zustände,
+  Transformationen und Randbedingungen, die für die automatische
+  Code-Generierung im SDD/IDD-Prozess benötigt werden.
 
-business_logic:
-  berlin_clock_conversion:
-    input:
-      - name: hours
-        type: int
-      - name: minutes
-        type: int
-      - name: seconds
-        type: int
+models:
 
-    rules:
-      seconds_lamp:
-        description: >
-          The top lamp toggles every two seconds.
-        logic:
-          - on if seconds % 2 == 0
-
-      five_hour_row:
-        description: >
-          Four lamps, each representing a 5-hour block.
-        logic:
-          - count_on = hours // 5
-          - row = [i < count_on for i in range(0, 4)]
-
-      one_hour_row:
-        description: >
-          Four lamps, one lamp for each remaining hour after removing 5-hour blocks.
-        logic:
-          - count_on = hours % 5
-          - row = [i < count_on for i in range(0, 4)]
-
-      five_minute_row:
-        description: >
-          Eleven lamps, each representing 5 minutes.
-          Lamps 3, 6 and 9 must be red (quarter markers), others yellow.
-        logic:
-          - count_on = minutes // 5
-          - row: >
-              for i in 1..11:
-                if i <= count_on:
-                  if i % 3 == 0: lamp = "R"
-                  else: lamp = "Y"
-                else:
-                  lamp = "O"
-
-      one_minute_row:
-        description: >
-          Four lamps, one per minute after removing 5-minute blocks.
-        logic:
-          - count_on = minutes % 5
-          - row = [i < count_on for i in range(0, 4)]
-
-output:
-  BerlinClockState:
+  TimeInput:
+    description: |
+      Standard-Zeitrepräsentation (24h).
+      Wird als Eingabe für alle Berechnungen verwendet.
     fields:
-      - topLampOn: bool
-      - hourRow1: list[bool]
-      - hourRow2: list[bool]
-      - minuteRow1: list[string]  # "R", "Y", "O"
-      - minuteRow2: list[bool]
+      hour: int   # 0–23
+      minute: int # 0–59
+      second: int # 0–59
+    invariants:
+      - "0 <= hour <= 23"
+      - "0 <= minute <= 59"
+      - "0 <= second <= 59"
+
+  BerlinClockState:
+    description: |
+      Vollständiger Status der Berliner Uhr. Jede Zeile ist eine
+      explizite Lampenfolge von links nach rechts (X = an, O = aus).
+    fields:
+      secondsLamp: string
+      fiveHourRow: string
+      oneHourRow: string
+      fiveMinuteRow: string
+      oneMinuteRow: string
+    invariants:
+      - "len(fiveHourRow) == 4"
+      - "len(oneHourRow) == 4"
+      - "len(fiveMinuteRow) == 11"
+      - "len(oneMinuteRow) == 4"
+      - "secondsLamp in ['X', 'O']"
+
+rules:
+
+  second-lamp:
+    description: |
+      Die obere Sekundenlampe blinkt im Zwei-Sekunden-Takt.
+      Gerade Sekunden → X
+      Ungerade Sekunden → O
+    formula: |
+      if second % 2 == 0: "X"
+      else: "O"
+
+  five-hour-row:
+    description: |
+      Eine Lampe pro 5 Stunden, max. 4.
+    formula: |
+      lit = hour // 5
+      result = "X"*lit + "O"*(4-lit)
+
+  one-hour-row:
+    description: |
+      Eine Lampe pro Stunde im Restbereich.
+    formula: |
+      rest = hour % 5
+      result = "X"*rest + "O"*(4-rest)
+
+  five-minute-row:
+    description: |
+      11 Lampen. Jede Lampe = 5 Minuten.
+      Positionen 3, 6, 9 sind rot (Viertelstunden).
+    formula: |
+      lamps_on = minute // 5
+      for i in range(11):
+        if i < lamps_on:
+          if (i+1) % 3 == 0: "R"
+          else: "Y"
+        else:
+          "O"
+
+  one-minute-row:
+    description: |
+      Eine gelbe Lampe pro Minute im Restbereich.
+    formula: |
+      rest = minute % 5
+      "Y"*rest + "O"*(4-rest)
+
+functions:
+
+  ComputeBerlinClockState:
+    description: |
+      Berechnet aus einer Zeit den vollständigen Status der Berliner Uhr.
+    input:
+      - TimeInput
+    output:
+      - BerlinClockState
+    preconditions:
+      - "input.hour is valid"
+      - "input.minute is valid"
+      - "input.second is valid"
+    postconditions:
+      - "return.secondsLamp obeys rule second-lamp"
+      - "return.fiveHourRow obeys rule five-hour-row"
+      - "return.oneHourRow obeys rule one-hour-row"
+      - "return.fiveMinuteRow obeys rule five-minute-row"
+      - "return.oneMinuteRow obeys rule one-minute-row"
+    deterministic: true
+
+  ValidateTimeInput:
+    description: |
+      Validiert eine Zeitangabe und gibt OK oder einen Fehler zurück.
+    input:
+      - TimeInput
+    output:
+      - Valid | ErrorMessage:string
+    deterministic: true
+
+  ConvertToAPIModel:
+    description: |
+      Adapter: Domain → API-DTO.
+      Muss exakt zu OpenAPI generierten Modellen passen.
+    input:
+      - BerlinClockState
+    output:
+      - ApiBerlinClockState
+    deterministic: true
