@@ -1,9 +1,7 @@
 FROM golang:1.22 AS build
 
 WORKDIR /app
-
-# nur das Backend kopieren
-COPY ./ ./
+COPY . .
 
 RUN go mod download
 
