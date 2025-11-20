@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-cd backend/gen/api && go run main.go
+cd backend/gen/api_local && go run main.go
