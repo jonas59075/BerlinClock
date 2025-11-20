@@ -1,85 +1,33 @@
-# BerlinClock – Spec-Driven Development (SDD)
+# Berlin Clock API
 
-Diese README ist der aktuelle vollständige Stand.
+Eine vollständig spec-driven entwickelte Backend- und Frontend-Implementierung der Berliner Uhr.  
+Technologien: **Go (API)**, **Elm (Frontend)**, **OpenAPI 3**, **SDD Codegen**, **Swagger UI**.
 
-## Struktur
-- backend/ – generierter und manueller Go-Code
-- frontend/ – Elm-Frontend
-- spec/ – OpenAPI & Domain-Spezifikationen
-- ci/ – Codex & Codegen-Pipelines
-- .github/workflows – CI/CD
+## Features
+- Echtzeit-Berechnung der Berliner Uhr
+- Vollständige OpenAPI-Spezifikation
+- Automatische API-Generierung (Backend)
+- Elm-Frontend zur Visualisierung
+- Docker-Compose Multi-Service Setup
+- CI-Pipeline inkl. OpenAPI-Linting
 
-## SDD-Prozess
-1. Anforderungen → Domain-Spezifikation
-2. Specs → API & Domain
-3. Generatoren erzeugen Code automatisch
-4. PRs werden erstellt, wenn Abweichungen entstehen
+## Development
 
-## Codegeneration
-### Backend (OpenAPI → Go)
-Script:
-- ci/codegen/generate-backend.sh  
-Workflow:
-- .github/workflows/codegeneration.yml
-
-### Frontend (OpenAPI → Elm)
-Script:
-- ci/codegen/generate-frontend.sh  
-Workflow:
-- .github/workflows/build.yml
-
-### Business Logic (Domain → Go)
-Script:
-- ci/codex/generate_business_logic.py  
-Workflow:
-- .github/workflows/codex-generate-business.yml  
-
-Generated Code:
-- backend/src/business_logic.generated.go
-
-## Lokale Ausführung
-
-### Backend
-```
-cd backend/gen/api
-go build ./...
-```
-
-### Frontend
-```
-cd frontend
-elm make src/Main.elm --output=main.js
-```
-
-## Wichtige Hinweise
-- .venv wird genutzt für Codex-Generator
-- openapi-generator-cli wird über npx genutzt
-- Alle generierten Files werden automatisch in PRs geschrieben
-
-## SDD-Stabilität
-Die Pipelines prüfen:
-- ob Codegenerator identisch wiederherstellbar ist
-- ob Specs unverändert bleiben
-- ob generierter Code deterministisch ist
-
-![CI](https://github.com/jonas59075/BerlinClock/actions/workflows/ci.yml/badge.svg)
-
-```mermaid
-flowchart TD
-    SPEC[Spec] --> CODEGEN[Codegen]
-    CODEGEN --> GO[Go Backend]
-    CODEGEN --> ELM[Elm Frontend]
-    GO --> API[REST]
-    ELM --> API
-```
-
-## 🚀 Development Mode
-Startet Backend & Frontend:
-```bash
-./dev.sh
-```
-
-## ▶️ Backend starten
-```bash
+### Backend starten
+```sh
 go run ./backend/cmd/api
-```
+Swagger-UI:
+http://localhost:8080/swagger
+Frontend starten (Elm)
+cd frontend
+elm-live src/Main.elm --open --port=3000
+Code generieren
+./ci/codegen/generate-backend.sh
+./ci/codegen/generate-frontend.sh
+Docker
+docker-compose up --build
+API: http://localhost:8080
+Frontend: http://localhost:8081
+Health & Version
+/healthz
+/version
