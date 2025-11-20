@@ -3,7 +3,7 @@ package berlinclock
 import (
 	"fmt"
 
-	api "backend/gen/api/go"
+	api "github.com/jonas59075/BerlinClock/backend/api/go"
 )
 
 // TimeInput represents the domain time input.
