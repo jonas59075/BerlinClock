@@ -6,14 +6,14 @@ import (
 	api "backend/gen/api/go"
 )
 
-// TimeInput represents the domain time input model.
+// TimeInput represents the domain time input.
 type TimeInput struct {
 	Hour   int
 	Minute int
 	Second int
 }
 
-// BerlinClockState represents the domain Berlin Clock state model.
+// BerlinClockState represents the domain state of the Berlin Clock.
 type BerlinClockState struct {
 	SecondsLamp   string
 	FiveHourRow   string
@@ -23,22 +23,23 @@ type BerlinClockState struct {
 }
 
 // ValidateTimeInput validates the given TimeInput according to domain invariants.
-func ValidateTimeInput(input TimeInput) (ok bool, errMsg string) {
+// Returns nil if valid, otherwise an error describing the violation.
+func ValidateTimeInput(input TimeInput) error {
 	if input.Hour < 0 || input.Hour > 23 {
-		return false, "hour must be between 0 and 23"
+		return fmt.Errorf("hour must be between 0 and 23")
 	}
 	if input.Minute < 0 || input.Minute > 59 {
-		return false, "minute must be between 0 and 59"
+		return fmt.Errorf("minute must be between 0 and 59")
 	}
 	if input.Second < 0 || input.Second > 59 {
-		return false, "second must be between 0 and 59"
+		return fmt.Errorf("second must be between 0 and 59")
 	}
-	return true, ""
+	return nil
 }
 
 // ComputeBerlinClockState computes the BerlinClockState for a given valid TimeInput.
 func ComputeBerlinClockState(input TimeInput) BerlinClockState {
-	// secondsLamp
+	// Seconds lamp
 	var secondsLamp string
 	if input.Second%2 == 0 {
 		secondsLamp = "X"
@@ -46,33 +47,33 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		secondsLamp = "O"
 	}
 
-	// fiveHourRow
-	lit5 := input.Hour / 5
+	// Five hour row
+	litFiveHour := input.Hour / 5
 	fiveHourRow := ""
 	for i := 0; i < 4; i++ {
-		if i < lit5 {
+		if i < litFiveHour {
 			fiveHourRow += "X"
 		} else {
 			fiveHourRow += "O"
 		}
 	}
 
-	// oneHourRow
-	lit1 := input.Hour % 5
+	// One hour row
+	restHour := input.Hour % 5
 	oneHourRow := ""
 	for i := 0; i < 4; i++ {
-		if i < lit1 {
+		if i < restHour {
 			oneHourRow += "X"
 		} else {
 			oneHourRow += "O"
 		}
 	}
 
-	// fiveMinuteRow
-	lit5m := input.Minute / 5
+	// Five minute row
+	litFiveMinute := input.Minute / 5
 	fiveMinuteRow := ""
 	for i := 0; i < 11; i++ {
-		if i < lit5m {
+		if i < litFiveMinute {
 			if (i+1)%3 == 0 {
 				fiveMinuteRow += "R"
 			} else {
@@ -83,11 +84,11 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		}
 	}
 
-	// oneMinuteRow
-	lit1m := input.Minute % 5
+	// One minute row
+	restMinute := input.Minute % 5
 	oneMinuteRow := ""
 	for i := 0; i < 4; i++ {
-		if i < lit1m {
+		if i < restMinute {
 			oneMinuteRow += "Y"
 		} else {
 			oneMinuteRow += "O"
@@ -103,9 +104,9 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	}
 }
 
-// ConvertToAPIModel converts a domain BerlinClockState to the OpenAPI ApiBerlinClockState.
-func ConvertToAPIModel(state BerlinClockState) api.ApiBerlinClockState {
-	return api.ApiBerlinClockState{
+// ConvertToAPIModel maps a domain BerlinClockState to the OpenAPI ApiBerlinClockState DTO.
+func ConvertToAPIModel(state BerlinClockState) *api.ApiBerlinClockState {
+	return &api.ApiBerlinClockState{
 		SecondsLamp:   state.SecondsLamp,
 		FiveHourRow:   state.FiveHourRow,
 		OneHourRow:    state.OneHourRow,
@@ -114,44 +115,44 @@ func ConvertToAPIModel(state BerlinClockState) api.ApiBerlinClockState {
 	}
 }
 
-// ApiControllerImpl implements the OpenAPI ApiController interface.
+// ApiControllerImpl implements the generated ApiController interface.
 type ApiControllerImpl struct{}
 
-// NewApiControllerImpl creates a new ApiControllerImpl.
+// NewApiControllerImpl returns a new ApiControllerImpl.
 func NewApiControllerImpl() *ApiControllerImpl {
 	return &ApiControllerImpl{}
 }
 
-// BerlinClockState implements the OpenAPI endpoint for computing the Berlin Clock state.
-func (s *ApiControllerImpl) BerlinClockState(req api.ApiBerlinClockStateRequest) (api.ApiBerlinClockState, error) {
+// GetBerlinClock implements the OpenAPI endpoint for computing the Berlin Clock state.
+func (s *ApiControllerImpl) GetBerlinClock(req *api.ApiTimeInput) (*api.ApiBerlinClockState, error) {
 	input := TimeInput{
 		Hour:   int(req.Hour),
 		Minute: int(req.Minute),
 		Second: int(req.Second),
 	}
-	if ok, errMsg := ValidateTimeInput(input); !ok {
-		return api.ApiBerlinClockState{}, fmt.Errorf("invalid input: %s", errMsg)
+	if err := ValidateTimeInput(input); err != nil {
+		return nil, err
 	}
 	state := ComputeBerlinClockState(input)
 	return ConvertToAPIModel(state), nil
 }
 
-// BerlinClockValidateTime implements the OpenAPI endpoint for validating time input.
-func (s *ApiControllerImpl) BerlinClockValidateTime(req api.ApiBerlinClockValidateTimeRequest) (api.ApiBerlinClockValidateTimeResponse, error) {
+// ValidateTime implements the OpenAPI endpoint for validating a time input.
+func (s *ApiControllerImpl) ValidateTime(req *api.ApiTimeInput) (*api.ApiValidationResult, error) {
 	input := TimeInput{
 		Hour:   int(req.Hour),
 		Minute: int(req.Minute),
 		Second: int(req.Second),
 	}
-	ok, errMsg := ValidateTimeInput(input)
-	if ok {
-		return api.ApiBerlinClockValidateTimeResponse{
-			Valid:       true,
-			ErrorMessage: "",
+	err := ValidateTimeInput(input)
+	if err != nil {
+		return &api.ApiValidationResult{
+			Valid:        false,
+			ErrorMessage: err.Error(),
 		}, nil
 	}
-	return api.ApiBerlinClockValidateTimeResponse{
-		Valid:       false,
-		ErrorMessage: errMsg,
+	return &api.ApiValidationResult{
+		Valid:        true,
+		ErrorMessage: "",
 	}, nil
 }
