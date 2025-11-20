@@ -1,31 +1,35 @@
-You are Codex.  
-Your task is to generate deterministic Elm code according to the domain-spec
-at: spec/berlin_clock_frontend.domain.yaml
+# Frontend Implementation Prompt (Elm, SDD/IDD Mode)
 
-REQUIREMENTS:
-- Produce pure Elm (0.19.1)
-- No side effects outside of `update`
-- Only HTTP requests allowed: GET /time, GET /berlin-clock
-- Use decoders, NOT Json.Decode.lazy
-- Main module must be `Main.elm`
-- Entry point: Browser.sandbox or Browser.element (decide based on need)
-- Application state must match ui_states defined in the domain spec
-- Create:
-  - src/Main.elm
-  - src/Api/Decoders.elm
-  - src/Api/Http.elm
-  - src/Model.elm
-  - src/Update.elm
-  - src/View.elm
-- Strict deterministic generation (same input spec → same code)
-- Do NOT create random values, UUIDs, placeholders or timestamps
-- All modules must compile with `elm make`
+You are Codex operating in strict Spec-Driven Development (SDD) mode.
+Your task is to generate a complete Elm frontend module implementing
+Berlin Clock display logic based solely on:
 
-SPEC-DRIVEN RULES:
-- Every field from domain-spec must exist in the model
-- Every API call must have a decoder
-- Every transition must be implemented in update
-- Every UI state must be visualized in View.elm
+- Domain specification in spec/berlin_clock_business.domain.yaml
+- OpenAPI-generated Elm API client in frontend/.generated_api
+- Deterministic SDD rules
 
-OUTPUT:
-Return the full Elm code for all required modules.
+The user writes NO manual Elm code. You produce a fully working Elm module.
+
+You must implement:
+1. Elm model for Berlin Clock state (mapped from API DTOs)
+2. Elm update logic:
+   - periodically fetch Berlin Clock state from backend
+   - handle success/error
+3. Elm view logic:
+   - render the Berlin Clock using simple Html
+   - one row per lamp row
+   - X = on, O = off
+4. Elm subscriptions for periodic refresh (1 second)
+5. Elm commands using the generated API client
+6. Place all generated code in:
+     frontend/src/Main.elm
+
+Rules:
+- Output ONLY Elm code, no markdown, no explanations.
+- Must compile with `elm make`.
+- Must use ONLY the generated API client under .generated_api.
+- Must follow domain invariants.
+- Deterministic output is required.
+
+Output:
+Return ONLY the complete Elm code for frontend/src/Main.elm.
