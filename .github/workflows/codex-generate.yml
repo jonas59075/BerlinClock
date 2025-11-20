@@ -1,62 +1,94 @@
-name: Codex Hybrid SDD Codegeneration
+name: Codex Backend SDD
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   codegen:
     runs-on: ubuntu-latest
+
     outputs:
-      sdd_diff: ${{ steps.diff.outputs.DIFF }}
+      sdd_changed: ${{ steps.diff.outputs.DIFF }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Python + OpenAI SDK
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install openai
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-      - name: Export OpenAI API key
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Install dependencies
         run: |
-          echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install openai pyyaml
 
-      - name: Generate backend code with Codex
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Run Codex Backend Generator
         run: |
+          source .venv/bin/activate
           python3 ci/codex/generate_backend_code.py --model gpt-4.1
 
-      - name: Git status before diff
-        run: git status
-
-      - name: SDD diff check
+      - name: Detect Changes
         id: diff
         run: |
+          git add backend/src || true
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "DIFF=1" >> $GITHUB_OUTPUT
-            echo "❌ Differences detected"
+            exit 0
           else
             echo "DIFF=0" >> $GITHUB_OUTPUT
-            echo "✅ SDD stable"
+            exit 0
           fi
-        continue-on-error: true
+
+      - name: Upload generated code (only if changed)
+        if: steps.diff.outputs.DIFF == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-code
+          path: |
+            backend/src/
+            spec/
+            ci/codex/prompts/
 
   create_pr:
     needs: codegen
-    if: always()
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    if: needs.codegen.outputs.sdd_changed == '1'
 
-      - name: Create Pull Request with generated code
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download generated code
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+          path: .
+
+      - name: Stage downloaded artifacts
+        run: |
+          git add backend/src || true
+          git add spec || true
+          git add ci/codex/prompts || true
+
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: codex-update
           commit-message: "codex: generated backend code"
-          title: "Codex: generated backend code"
+          title: "Codex: Update generated backend code"
           body: |
-            Codex-generated backend code.
-
-            SDD status: ${{ needs.codegen.outputs.sdd_diff }}
+            This PR contains automatically generated backend code.
+            SDD detected changes and created this PR automatically.
+          labels: |
+            automated
+            codex
