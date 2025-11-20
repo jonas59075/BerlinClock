@@ -1,0 +1,4 @@
+github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
+github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
+github.com/jonas59075/BerlinClock/backend/api v0.0.0-20251120150102-269fce8d4932 h1:fL0viV5h5JOr7SoOtC30+JPmUhTtP1EBFxRUknsEuWU=
+github.com/jonas59075/BerlinClock/backend/api v0.0.0-20251120150102-269fce8d4932/go.mod h1:aMOQ9WEzjzcr2aJvEwsp/xInShICKru7Nifo2lCKkIQ=
