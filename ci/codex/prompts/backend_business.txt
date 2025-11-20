@@ -1,23 +1,66 @@
-You are Codex generating deterministic Go code.
-Follow strictly the domain-spec located at:
-spec/berlin_clock_business.domain.yaml
+You are Codex.  
+Generate clean, idiomatic Go code that implements the business logic for the Berlin Clock.  
+Use the struct types generated from the OpenAPI specification located in backend/gen/api/go/.
 
-REQUIREMENTS:
-- Implement pure functional business logic
-- File: backend/src/berlin_clock_business.generated.go
-- No external dependencies except standard library
-- No randomness, no timestamps
-- Deterministic output for identical inputs
-- Must compile with `go build`
-- Do not modify handler boilerplate in backend/gen/api/
+The API layer is already generated.  
+You only generate the BUSINESS LAYER.
 
-IMPLEMENTATION TASKS:
-- Create a pure function:
-    func ComputeBerlinClock(hours int, minutes int, seconds int) BerlinClockState
-- Use data types from the generated OpenAPI Go server (BerlinClockState)
-- Use exact rules defined in the domain-spec (mathematically precise)
-- All rows must be constructed according to spec
-- Quarter markers (5-minute lamp row): "R" on 3, 6, 9; "Y" otherwise
+Requirements:
 
-OUTPUT:
-Return only the Go code.
+1. You MUST implement business logic functions for:
+   - Converting a normal time (HH:MM:SS) into Berlin Clock state.
+   - Provide helper functions (pure functions, no side effects).
+   - Use clean, testable Go.
+
+2. You MUST implement these exported functions:
+
+   func ComputeBerlinClockState(hours int, minutes int, seconds int) (BerlinClockState, error)
+
+   A BerlinClockState has fields:
+     SecondsLamp      string
+     FiveHourRow      [4]string
+     OneHourRow       [4]string
+     FiveMinuteRow    [11]string
+     OneMinuteRow     [4]string
+
+3. Business rules:
+
+   - Seconds lamp:
+       ON  when seconds % 2 == 0
+       OFF when seconds % 2 == 1
+
+   - Five-hour row:
+       Number of active lamps = hours / 5
+       Active = "R", inactive = "O"
+
+   - One-hour row:
+       Number of active lamps = hours % 5
+       Active = "R", inactive = "O"
+
+   - Five-minute row:
+       Number of active lamps = minutes / 5
+       Lamps at positions 3, 6, 9 must be "R" (quarter markers)
+       Otherwise active = "Y"
+       Inactive = "O"
+
+   - One-minute row:
+       Number of active lamps = minutes % 5
+       Active = "Y", inactive = "O"
+
+4. Error handling:
+   - Return error if hours < 0 or > 23
+   - Return error if minutes < 0 or > 59
+   - Return error if seconds < 0 or > 59
+
+5. Output:
+   ONLY code.
+   No comments.
+   No Markdown.
+   No description.
+   Just valid Go code.
+
+6. File structure:
+   Package name: berlinclock
+   File name: berlin_clock_business.generated.go
+
+Start generating now.
