@@ -1,25 +1,31 @@
-echo "Fixing Elm module names..."
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Universal sed (Linux + macOS) using temp files
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
 
-apply_sed() {
-  local file="$1"
-  local find="$2"
-  local replace="$3"
+SPEC_FILE="spec/openapi.yaml"
+OUT_DIR="frontend/src/Api"
 
-  # Create temp file
-  tmpfile=$(mktemp)
+if ! command -v openapi-generator-cli >/dev/null 2>&1; then
+  echo "ERROR: openapi-generator-cli not found in PATH."
+  echo "Install it e.g. via:"
+  echo "  npm install -g @openapitools/openapi-generator-cli"
+  echo "or see https://openapi-generator.tech/docs/installation/"
+  exit 1
+fi
 
-  # Apply replacement portable across Linux/macOS
-  sed "s/${find}/${replace}/" "$file" > "$tmpfile"
+if [ ! -f "$SPEC_FILE" ]; then
+  echo "ERROR: Spec file '$SPEC_FILE' not found."
+  exit 1
+fi
 
-  # Move back
-  mv "$tmpfile" "$file"
-}
+echo "==> Generating Elm client from '$SPEC_FILE' into '$OUT_DIR' ..."
+openapi-generator-cli generate \
+  -i "$SPEC_FILE" \
+  -g elm \
+  -o "$OUT_DIR"
 
-apply_sed frontend/src/Api/Api.elm "^module Api exposing" "module Api.Api exposing"
-apply_sed frontend/src/Api/Data.elm "^module Data exposing" "module Api.Data exposing"
-apply_sed frontend/src/Api/Time.elm "^module Time exposing" "module Api.Time exposing"
-apply_sed frontend/src/Api/Request/Default.elm "^module Request.Default exposing" "module Api.Request.Default exposing"
-
-echo "Elm module namespace fix complete."
+echo
+echo "==> Frontend codegen finished."
+echo "    Bitte 'git diff' prüfen und Änderungen manuell committen."
