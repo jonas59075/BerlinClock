@@ -1,52 +1,41 @@
-You are Codex, operating in Strict SDD Mode.
+# Backend Implementation Prompt (SDD/IDD Mode)
+# Generates full backend business-logic + API service implementation.
 
-GOAL:
-Generate production-ready Go code that implements the full Berlin Clock business logic
-as defined in the embedded domain specification. The code must be deterministic,
-pure, dependency-free, and stable under repeated regeneration. It must compile
-immediately in backend/src/.
+You are Codex in strict Spec-Driven Development (SDD) mode.
 
-OUTPUT REQUIREMENTS:
-- Output ONLY valid Go code.
-- Do NOT include explanations.
-- Do NOT include backticks.
-- Do NOT include markdown.
-- Do NOT generate additional files.
-- File content will be written to: backend/src/berlin_clock_backend.generated.go
-- The package name MUST be: backend
-- Use ONLY the Go standard library.
+Your task:
+Generate complete backend implementation code for the Berlin Clock,
+based EXCLUSIVELY on:
+- Domain specification in spec/berlin_clock_business.domain.yaml
+- OpenAPI-generated Go API interfaces in backend/gen/api/go/
+- Deterministic SDD rules
 
-FUNCTIONAL REQUIREMENTS:
-Implement the function:
+The user does NOT write manual backend code.
+You generate full implementation:
+- Business logic functions
+- Service implementation matching OpenAPI interfaces
+- Mapping Domain → API DTOs
+- Input validation
+- Pure Go, no side-effects except returning values
+- 100 % deterministic, reproducible output
 
-    func ConvertToBerlinClock(t time.Time) BerlinClockState
+Rules:
+1. Use package "berlinclock".
+2. Output ONLY Go code, no markdown, no comments except exported docstrings.
+3. Place all generated code in:
+   backend/src/berlin_clock_backend.generated.go
+4. Do NOT reimplement OpenAPI types. Import them.
+5. All functions must strictly follow domain-spec rules and invariants.
+6. Implement domain functions:
+   - ComputeBerlinClockState
+   - ValidateTimeInput
+   - ConvertToAPIModel
+7. Implement API service functions expected by the generated ApiController.
 
-and the following sub-functions:
+Structure:
+- All business logic: pure, deterministic
+- All API implementations: call domain functions
+- Ensure code compiles with no manual modifications
 
-    func calculateSeconds(sec int) string
-    func calculateHoursTop(hour int) string
-    func calculateHoursBottom(hour int) string
-    func calculateMinutesTop(min int) string
-    func calculateMinutesBottom(min int) string
-
-Define this struct exactly:
-
-    type BerlinClockState struct {
-        Seconds       string
-        HoursTop      string
-        HoursBottom   string
-        MinutesTop    string
-        MinutesBottom string
-    }
-
-BUSINESS LOGIC (from domain spec):
-{{DOMAIN_SPEC}}
-
-NON-FUNCTIONAL REQUIREMENTS:
-- No randomness.
-- No mutable global state.
-- No IO.
-- No concurrency.
-- Regeneration must be stable and reproducible.
-
-Return ONLY valid Go code. No markdown. No commentary.
+Output:
+Return ONLY valid Go code for the file backend/src/berlin_clock_backend.generated.go
