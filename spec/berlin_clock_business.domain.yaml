@@ -1,0 +1,65 @@
+version: 1.0
+type: domain-spec
+component: backend
+purpose: Berlin Clock Business Logic
+
+business_logic:
+  berlin_clock_conversion:
+    input:
+      - name: hours
+        type: int
+      - name: minutes
+        type: int
+      - name: seconds
+        type: int
+
+    rules:
+      seconds_lamp:
+        description: >
+          The top lamp toggles every two seconds.
+        logic:
+          - on if seconds % 2 == 0
+
+      five_hour_row:
+        description: >
+          Four lamps, each representing a 5-hour block.
+        logic:
+          - count_on = hours // 5
+          - row = [i < count_on for i in range(0, 4)]
+
+      one_hour_row:
+        description: >
+          Four lamps, one lamp for each remaining hour after removing 5-hour blocks.
+        logic:
+          - count_on = hours % 5
+          - row = [i < count_on for i in range(0, 4)]
+
+      five_minute_row:
+        description: >
+          Eleven lamps, each representing 5 minutes.
+          Lamps 3, 6 and 9 must be red (quarter markers), others yellow.
+        logic:
+          - count_on = minutes // 5
+          - row: >
+              for i in 1..11:
+                if i <= count_on:
+                  if i % 3 == 0: lamp = "R"
+                  else: lamp = "Y"
+                else:
+                  lamp = "O"
+
+      one_minute_row:
+        description: >
+          Four lamps, one per minute after removing 5-minute blocks.
+        logic:
+          - count_on = minutes % 5
+          - row = [i < count_on for i in range(0, 4)]
+
+output:
+  BerlinClockState:
+    fields:
+      - topLampOn: bool
+      - hourRow1: list[bool]
+      - hourRow2: list[bool]
+      - minuteRow1: list[string]  # "R", "Y", "O"
+      - minuteRow2: list[bool]

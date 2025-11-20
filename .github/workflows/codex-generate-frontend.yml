@@ -1,0 +1,54 @@
+name: Codex Frontend SDD Codegeneration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  codegen-frontend:
+    runs-on: ubuntu-latest
+    outputs:
+      sdd_diff: ${{ steps.diff.outputs.DIFF }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python + OpenAI
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install openai pyyaml
+
+      - name: Export API key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
+
+      - name: Generate Elm frontend code
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python3 ci/codex/generate_frontend_code.py --model gpt-4.1
+
+      - name: Git diff check
+        id: diff
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "DIFF=1" >> $GITHUB_OUTPUT
+            echo "❌ Differences detected"
+          else
+            echo "DIFF=0" >> $GITHUB_OUTPUT
+            echo "✅ SDD stable"
+          fi
+
+  pr:
+    needs: codegen-frontend
+    if: needs.codegen-frontend.outputs.sdd_diff == '1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex-frontend-update
+          commit-message: "codex(frontend): generated Elm code"
+          title: "Codex Frontend Update"
+          body: "Spec-driven Elm code generated from domain-spec"

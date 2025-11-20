@@ -1,0 +1,84 @@
+version: 1.0
+type: domain-spec
+component: frontend
+language: elm
+purpose: >
+  Declarative description of the Berlin Clock frontend UI, the required states,
+  transitions and API interactions for SDD-based Elm codegeneration.
+
+ui:
+  root_component: BerlinClockApp
+
+state:
+  TimeState:
+    description: >
+      Represents the time returned by the backend via GET /time.
+    fields:
+      - name: hours
+        type: Int
+      - name: minutes
+        type: Int
+      - name: seconds
+        type: Int
+
+  BerlinClockState:
+    description: >
+      Represents the Berlin Clock light structure returned by GET /berlin-clock.
+    fields:
+      - name: topLampOn
+        type: Bool
+      - name: hourRow1
+        type: List Bool
+      - name: hourRow2
+        type: List Bool
+      - name: minuteRow1
+        type: List Bool
+      - name: minuteRow2
+        type: List Bool
+
+ui_states:
+  - name: Loading
+    description: Application starting / waiting for initial backend response.
+
+  - name: Loaded
+    fields:
+      - name: time
+        type: TimeState
+      - name: berlinClock
+        type: BerlinClockState
+
+  - name: Error
+    fields:
+      - name: message
+        type: String
+
+transitions:
+  - from: Loading
+    to: Loaded
+    trigger: api.time.loaded
+  - from: Loading
+    to: Error
+    trigger: api.failed
+  - from: Loaded
+    to: Error
+    trigger: api.failed
+  - from: Loaded
+    to: Loaded
+    trigger: api.clockRefreshed
+
+api_calls:
+  - name: loadTime
+    method: GET
+    endpoint: /time
+    response: TimeState
+
+  - name: loadBerlinClock
+    method: GET
+    endpoint: /berlin-clock
+    response: BerlinClockState
+
+refresh:
+  interval_seconds: 1
+  calls:
+    - loadTime
+    - loadBerlinClock

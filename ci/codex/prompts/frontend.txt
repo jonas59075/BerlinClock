@@ -1,0 +1,31 @@
+You are Codex.  
+Your task is to generate deterministic Elm code according to the domain-spec
+at: spec/berlin_clock_frontend.domain.yaml
+
+REQUIREMENTS:
+- Produce pure Elm (0.19.1)
+- No side effects outside of `update`
+- Only HTTP requests allowed: GET /time, GET /berlin-clock
+- Use decoders, NOT Json.Decode.lazy
+- Main module must be `Main.elm`
+- Entry point: Browser.sandbox or Browser.element (decide based on need)
+- Application state must match ui_states defined in the domain spec
+- Create:
+  - src/Main.elm
+  - src/Api/Decoders.elm
+  - src/Api/Http.elm
+  - src/Model.elm
+  - src/Update.elm
+  - src/View.elm
+- Strict deterministic generation (same input spec → same code)
+- Do NOT create random values, UUIDs, placeholders or timestamps
+- All modules must compile with `elm make`
+
+SPEC-DRIVEN RULES:
+- Every field from domain-spec must exist in the model
+- Every API call must have a decoder
+- Every transition must be implemented in update
+- Every UI state must be visualized in View.elm
+
+OUTPUT:
+Return the full Elm code for all required modules.
