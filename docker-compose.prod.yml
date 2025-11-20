@@ -1,0 +1,19 @@
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    image: ghcr.io/rainerniehues/berlinclock-backend:latest
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    image: ghcr.io/rainerniehues/berlinclock-frontend:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend

@@ -1,23 +1,12 @@
-FROM node:20-alpine AS build
-
-WORKDIR /app/frontend
-
-# Elm-Tooling
+FROM node:20 AS build
+WORKDIR /app
+COPY frontend/ .
 RUN npm install -g elm
+RUN elm make src/Main.elm --optimize --output=main.js
 
-# Elm-Projekt kopieren
-COPY frontend/elm.json ./elm.json
-COPY frontend/index.html ./index.html
-COPY frontend/src ./src
-
-# Build
-RUN mkdir -p /app/dist && \
-    elm make src/Main.elm --optimize --output=/app/dist/main.js
-
-FROM nginx:alpine
-
-# statische Dateien
-COPY frontend/index.html /usr/share/nginx/html/index.html
-COPY --from=build /app/dist/main.js /usr/share/nginx/html/main.js
-
-EXPOSE 80
+FROM node:20
+WORKDIR /app
+COPY --from=build /app .
+RUN npm install -g serve
+EXPOSE 3000
+CMD ["serve", "-s", ".", "-l", "3000"]

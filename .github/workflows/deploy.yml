@@ -1,0 +1,34 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Build backend
+        run: |
+          docker build -f docker/backend.Dockerfile -t ghcr.io/${{ github.repository_owner }}/berlinclock-backend:latest .
+
+      - name: Build frontend
+        run: |
+          docker build -f docker/frontend.Dockerfile -t ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:latest .
+
+      - name: Push backend
+        run: docker push ghcr.io/${{ github.repository_owner }}/berlinclock-backend:latest
+
+      - name: Push frontend
+        run: docker push ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:latest

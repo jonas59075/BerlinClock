@@ -1,24 +1,13 @@
-FROM golang:1.22 AS build
-
-# Arbeitsverzeichnis = Projektroot
+# ---- Build Stage ----
+FROM golang:1.22 AS builder
 WORKDIR /app
+COPY backend/ .
+RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server gen/api_local/main.go
 
-# Modul-Dateien kopieren
-COPY go.mod go.sum ./
-
-# Abhängigkeiten holen
-RUN go mod download
-
-# Komplettes Repo kopieren
-COPY . .
-
-# Backend bauen
-RUN CGO_ENABLED=0 GOOS=linux go build -o berlinclock-api ./backend/cmd/api
-
-# Runtime-Stage
+# ---- Runtime Stage ----
 FROM alpine:3.20
 WORKDIR /app
-COPY --from=build /app/berlinclock-api .
+COPY --from=builder /app/server .
 EXPOSE 8080
-docker compose build --no-cache && docker compose up
-CMD ["./berlinclock-api"]
+ENTRYPOINT ["./server"]

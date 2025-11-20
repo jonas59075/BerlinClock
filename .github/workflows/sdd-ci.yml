@@ -1,0 +1,97 @@
+name: SDD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+
+  backend_codegen:
+    name: Backend Codegen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install OpenAPI Generator
+        run: |
+          curl -L https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.5.0/openapi-generator-cli-7.5.0.jar -o openapi.jar
+          echo "#!/bin/bash" > openapi-generator
+          echo "java -jar $(pwd)/openapi.jar \"\$@\"" >> openapi-generator
+          chmod +x openapi-generator
+
+      - name: Regenerate Backend API
+        run: |
+          rm -rf backend/gen/api_local/openapi
+          ./openapi-generator generate \
+            -i backend/spec/openapi.yaml \
+            -g go-server \
+            -o backend/gen/api_local/openapi
+
+      - name: Commit Backend Codegen (Codex-style)
+        run: |
+          git config user.name "Codex Auto"
+          git config user.email "codex@auto.local"
+          git add -A
+          git diff --quiet && echo "No changes" || (git commit -m "SDD: Regenerate backend API" && git push)
+
+
+  frontend_codegen:
+    name: Frontend Codegen (Elm/Rust optional)
+    runs-on: ubuntu-latest
+    needs: backend_codegen
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Elm
+        run: npm install -g elm
+
+      - name: Generate Elm API (placeholder emitter)
+        run: |
+          mkdir -p frontend/gen/api
+          echo "-- Elm API codegen here" > frontend/gen/api/Api.elm
+
+      - name: Commit Frontend Codegen
+        run: |
+          git config user.name "Codex Auto"
+          git config user.email "codex@auto.local"
+          git add -A
+          git diff --quiet && echo "No changes" || (git commit -m "SDD: Regenerate frontend API" && git push)
+
+
+  backend_test:
+    name: Go Build & Tests
+    runs-on: ubuntu-latest
+    needs: backend_codegen
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Go tests
+        working-directory: backend/gen/api_local/openapi
+        run: go test ./... -v
+
+
+  frontend_build:
+    name: Elm Build
+    runs-on: ubuntu-latest
+    needs: frontend_codegen
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Elm
+        run: npm install -g elm
+
+      - name: Elm build
+        working-directory: frontend
+        run: elm make src/Main.elm --output=main.js
+
