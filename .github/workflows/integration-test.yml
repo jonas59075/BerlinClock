@@ -1,0 +1,66 @@
+name: Integration Test (Backend + Frontend)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - backend/**
+      - frontend/**
+      - ci/**
+      - spec/**
+      - openapi.yaml
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ---------- Backend Build ----------
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Build Backend Server
+        run: |
+          cd backend/gen/api
+          go build ./...
+
+      # ---------- Frontend Build ----------
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Elm
+        run: npm install -g elm
+
+      - name: Build Elm Frontend
+        run: |
+          cd frontend
+          elm make src/Main.elm --optimize --output=dist/main.js
+
+      # ---------- Simple Integration Test ----------
+      - name: Spin up Backend
+        run: |
+          cd backend/gen/api
+          nohup go run main.go > backend.log 2>&1 & echo $! > backend.pid
+          sleep 3
+
+      - name: Integration Test
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/time)
+          if [[ "$STATUS" != "200" ]]; then
+            echo "❌ Integration test failed: backend not responding correctly"
+            exit 1
+          fi
+          echo "✅ Backend endpoint responds correctly"
+
+      - name: Cleanup Backend
+        if: always()
+        run: |
+          kill $(cat backend/gen/api/backend.pid) || true
