@@ -1,19 +1,16 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, div, text)
+import Html exposing (Html)
+import Html.Attributes exposing (class)
+import BerlinClock.Model as Model
+import BerlinClock.Update as Update
+import BerlinClock.View as View
 
-main : Program () () Msg
+main : Program () Model.Model Update.Msg
 main =
     Browser.sandbox
-        { init = ()
-        , update = \_ model -> model
-        , view = \_ -> view
+        { init = Model.init
+        , update = Update.update
+        , view = View.view
         }
-
-view : Html Msg
-view =
-    div [] [ text "Berlin Clock – Main.elm OK" ]
-
-type Msg
-    = NoOp
