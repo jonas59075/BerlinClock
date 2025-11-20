@@ -61,3 +61,5 @@ Die Pipelines prüfen:
 - ob Codegenerator identisch wiederherstellbar ist
 - ob Specs unverändert bleiben
 - ob generierter Code deterministisch ist
+
+![CI](https://github.com/jonas59075/BerlinClock/actions/workflows/ci.yml/badge.svg)
