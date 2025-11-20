@@ -1,0 +1,13 @@
+{
+  "name": "berlinclock-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "elm-tooling": "^1.14.0",
+    "elm": "^0.19.1-5"
+  }
+}
