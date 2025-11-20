@@ -78,3 +78,8 @@ Startet Backend & Frontend:
 ```bash
 ./dev.sh
 ```
+
+## ▶️ Backend starten
+```bash
+go run ./backend/cmd/api
+```
