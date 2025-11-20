@@ -1,0 +1,59 @@
+name: Codex Business Logic SDD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  codegen-bl:
+    runs-on: ubuntu-latest
+    outputs:
+      sdd_diff: ${{ steps.diff.outputs.DIFF }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python + OpenAI SDK
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install openai
+
+      - name: Export API Key
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
+
+      - name: Generate Business Logic using Codex
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python3 ci/codex/generate_business_logic.py --model gpt-4.1
+
+      - name: Check for differences (SDD Drift)
+        id: diff
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "DIFF=1" >> $GITHUB_OUTPUT
+            echo "❌ Differences detected"
+          else
+            echo "DIFF=0" >> $GITHUB_OUTPUT
+            echo "✅ Business logic SDD-stable"
+          fi
+
+  pr:
+    needs: codegen-bl
+    if: needs.codegen-bl.outputs.sdd_diff == '1'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Pull Request with Business Logic
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex-business-logic-update
+          commit-message: "codex: generated Berlin Clock business logic"
+          title: "Codex Business Logic Update"
+          body: |
+            Auto-generated Berlin Clock business logic.
+            SDD drift detected – this PR reflects updated logic.

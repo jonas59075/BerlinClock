@@ -1,0 +1,23 @@
+You are Codex generating deterministic Go code.
+Follow strictly the domain-spec located at:
+spec/berlin_clock_business.domain.yaml
+
+REQUIREMENTS:
+- Implement pure functional business logic
+- File: backend/src/berlin_clock_business.generated.go
+- No external dependencies except standard library
+- No randomness, no timestamps
+- Deterministic output for identical inputs
+- Must compile with `go build`
+- Do not modify handler boilerplate in backend/gen/api/
+
+IMPLEMENTATION TASKS:
+- Create a pure function:
+    func ComputeBerlinClock(hours int, minutes int, seconds int) BerlinClockState
+- Use data types from the generated OpenAPI Go server (BerlinClockState)
+- Use exact rules defined in the domain-spec (mathematically precise)
+- All rows must be constructed according to spec
+- Quarter markers (5-minute lamp row): "R" on 3, 6, 9; "Y" otherwise
+
+OUTPUT:
+Return only the Go code.
