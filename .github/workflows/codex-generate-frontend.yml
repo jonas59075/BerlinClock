@@ -1,54 +1,95 @@
-name: Codex Frontend SDD Codegeneration
+name: Codex Frontend SDD
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   codegen-frontend:
     runs-on: ubuntu-latest
+
     outputs:
-      sdd_diff: ${{ steps.diff.outputs.DIFF }}
+      sdd_changed: ${{ steps.diff.outputs.DIFF }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Python + OpenAI
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install openai pyyaml
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install openai pyyaml
 
-      - name: Export API key
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
-
-      - name: Generate Elm frontend code
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Run Codex Frontend Generator
         run: |
+          source .venv/bin/activate
           python3 ci/codex/generate_frontend_code.py --model gpt-4.1
 
-      - name: Git diff check
+      - name: Detect changes in frontend
         id: diff
         run: |
+          git add frontend/src || true
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "DIFF=1" >> $GITHUB_OUTPUT
-            echo "❌ Differences detected"
+            exit 0
           else
             echo "DIFF=0" >> $GITHUB_OUTPUT
-            echo "✅ SDD stable"
+            exit 0
           fi
 
-  pr:
-    needs: codegen-frontend
-    if: needs.codegen-frontend.outputs.sdd_diff == '1'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Upload generated frontend code (only if changed)
+        if: steps.diff.outputs.DIFF == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-frontend-code
+          path: |
+            frontend/src/
+            spec/
+            ci/codex/prompts/
 
-      - name: Create Pull Request
+  create_pr_frontend:
+    needs: codegen-frontend
+    runs-on: ubuntu-latest
+    if: needs.codegen-frontend.outputs.sdd_changed == '1'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download generated frontend code
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-frontend-code
+          path: .
+
+      - name: Stage downloaded artifacts
+        run: |
+          git add frontend/src || true
+          git add spec || true
+          git add ci/codex/prompts || true
+
+      - name: Create Pull Request (Frontend)
         uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: codex-frontend-update
-          commit-message: "codex(frontend): generated Elm code"
-          title: "Codex Frontend Update"
-          body: "Spec-driven Elm code generated from domain-spec"
+          commit-message: "codex(frontend): generated frontend code"
+          title: "Codex: Update generated frontend code"
+          body: |
+            Automated PR with newly generated frontend code via SDD.
+            Changes detected by deterministic Codex generation.
+          labels: |
+            automated
+            codex
+            frontend
