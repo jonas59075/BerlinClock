@@ -9,17 +9,17 @@ jobs:
   backend:
     name: Backend (Go)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/gen/api
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Show workspace tree
-        run: |
-          pwd
-          ls -R .
-
-      - uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.22.x"
+          go-version: '1.22.x'
 
       - name: Go mod tidy
         run: go mod tidy
@@ -31,11 +31,13 @@ jobs:
     name: Frontend (Elm)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install Elm
         run: npm install -g elm
