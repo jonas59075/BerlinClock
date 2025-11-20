@@ -1,66 +1,40 @@
 #!/usr/bin/env python3
-import argparse
 import os
 from openai import OpenAI
 
-# Initialize OpenAI client
-client = OpenAI()
+PROMPT_PATH = "ci/codex/prompts/backend.txt"
+DOMAIN_SPEC = "spec/berlin_clock_business.domain.yaml"
+OUTPUT = "backend/src/berlin_clock_backend.generated.go"
 
-
-PROMPT_FILE = "ci/codex/prompts/backend.txt"
-
-
-def load_prompt():
-    if not os.path.exists(PROMPT_FILE):
-        raise FileNotFoundError(f"Prompt template not found: {PROMPT_FILE}")
-
-    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+def load_file(path):
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
-
 def build_prompt():
-    base_prompt = load_prompt()
-    return base_prompt
-
+    prompt = load_file(PROMPT_PATH)
+    domain = load_file(DOMAIN_SPEC)
+    return f"{prompt}\n\n# DOMAIN SPEC\n{domain}"
 
 def generate_code(model, prompt):
+    client = OpenAI()
     response = client.chat.completions.create(
         model=model,
-        messages=[
-            {"role": "system", "content": "You are Codex generating backend Go code for the Berlin Clock."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.0
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0,
+        max_tokens=6000,
     )
-
-    # New OpenAI response format
-    content = response.choices[0].message.content
-
-    if not content:
-        raise ValueError("No text output from model.")
-
-    return content
-
+    return response.choices[0].message.content
 
 def write_output(code):
-    os.makedirs("backend/src", exist_ok=True)
-    target = "backend/src/berlin_clock_backend.generated.go"
-
-    with open(target, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
+    with open(OUTPUT, "w", encoding="utf-8") as f:
         f.write(code)
 
-    print(f"[INFO] Generated backend code written to {target}")
-
-
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True, help="OpenAI model to use")
-    args = parser.parse_args()
-
     prompt = build_prompt()
-    code = generate_code(args.model, prompt)
+    code = generate_code("gpt-4.1", prompt)
     write_output(code)
-
+    print(f"[INFO] Backend code written to {OUTPUT}")
 
 if __name__ == "__main__":
     main()
