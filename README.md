@@ -63,3 +63,12 @@ Die Pipelines prüfen:
 - ob generierter Code deterministisch ist
 
 ![CI](https://github.com/jonas59075/BerlinClock/actions/workflows/ci.yml/badge.svg)
+
+```mermaid
+flowchart TD
+    SPEC[Spec] --> CODEGEN[Codegen]
+    CODEGEN --> GO[Go Backend]
+    CODEGEN --> ELM[Elm Frontend]
+    GO --> API[REST]
+    ELM --> API
+```

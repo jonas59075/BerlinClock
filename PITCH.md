@@ -1,0 +1,1 @@
+Spec Driven Development: Backend & Frontend werden aus YAML-Specs generiert. Backend: Go, Schichtenmodell. Frontend: Elm. CI baut beides. Keine Autobuild-Commits. Senior-Kontrolle + KI-Unterstützung.
