@@ -72,3 +72,9 @@ flowchart TD
     GO --> API[REST]
     ELM --> API
 ```
+
+## 🚀 Development Mode
+Startet Backend & Frontend:
+```bash
+./dev.sh
+```
