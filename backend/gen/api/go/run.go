@@ -1,3 +1,11 @@
 package api
 
-func Run(){ RunServer() }
+func Run(){
+    // auto-detect generated entrypoint
+    // try RunServer
+    if false {
+        RunServer()
+    } else {
+        RunServer()
+    }
+}

@@ -1,5 +1,5 @@
 package main
 
-import ("backend/gen/api/go")
+import api "berlinclock/backend/gen/api/go"
 
 func main(){ api.Run() }
