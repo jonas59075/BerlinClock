@@ -22,8 +22,7 @@ type BerlinClockState struct {
 	OneMinuteRow  string
 }
 
-// ValidateTimeInput validates the given TimeInput according to domain invariants.
-// Returns nil if valid, otherwise an error describing the violation.
+// ValidateTimeInput validates the given TimeInput.
 func ValidateTimeInput(input TimeInput) error {
 	if input.Hour < 0 || input.Hour > 23 {
 		return fmt.Errorf("hour must be between 0 and 23")
@@ -37,9 +36,8 @@ func ValidateTimeInput(input TimeInput) error {
 	return nil
 }
 
-// ComputeBerlinClockState computes the BerlinClockState for a given valid TimeInput.
+// ComputeBerlinClockState computes the BerlinClockState.
 func ComputeBerlinClockState(input TimeInput) BerlinClockState {
-	// Seconds lamp
 	var secondsLamp string
 	if input.Second%2 == 0 {
 		secondsLamp = "X"
@@ -47,7 +45,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		secondsLamp = "O"
 	}
 
-	// Five hour row
+	// Five-hour row
 	litFiveHour := input.Hour / 5
 	fiveHourRow := ""
 	for i := 0; i < 4; i++ {
@@ -58,7 +56,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		}
 	}
 
-	// One hour row
+	// One-hour row
 	restHour := input.Hour % 5
 	oneHourRow := ""
 	for i := 0; i < 4; i++ {
@@ -69,7 +67,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		}
 	}
 
-	// Five minute row
+	// Five-minute row
 	litFiveMinute := input.Minute / 5
 	fiveMinuteRow := ""
 	for i := 0; i < 11; i++ {
@@ -84,7 +82,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 		}
 	}
 
-	// One minute row
+	// One-minute row
 	restMinute := input.Minute % 5
 	oneMinuteRow := ""
 	for i := 0; i < 4; i++ {
@@ -104,9 +102,9 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	}
 }
 
-// ConvertToAPIModel maps a domain BerlinClockState to the OpenAPI ApiBerlinClockState DTO.
-func ConvertToAPIModel(state BerlinClockState) *api.ApiBerlinClockState {
-	return &api.ApiBerlinClockState{
+// ConvertToAPIModel maps a domain BerlinClockState to API BerlinClockState.
+func ConvertToAPIModel(state BerlinClockState) *api.BerlinClockState {
+	return &api.BerlinClockState{
 		SecondsLamp:   state.SecondsLamp,
 		FiveHourRow:   state.FiveHourRow,
 		OneHourRow:    state.OneHourRow,
@@ -115,44 +113,34 @@ func ConvertToAPIModel(state BerlinClockState) *api.ApiBerlinClockState {
 	}
 }
 
-// ApiControllerImpl implements the generated ApiController interface.
+// ApiControllerImpl implements the generated controller interface.
 type ApiControllerImpl struct{}
 
-// NewApiControllerImpl returns a new ApiControllerImpl.
 func NewApiControllerImpl() *ApiControllerImpl {
 	return &ApiControllerImpl{}
 }
 
-// GetBerlinClock implements the OpenAPI endpoint for computing the Berlin Clock state.
-func (s *ApiControllerImpl) GetBerlinClock(req *api.ApiTimeInput) (*api.ApiBerlinClockState, error) {
+// GetBerlinClock handles /berlin-clock requests.
+func (s *ApiControllerImpl) GetBerlinClock(hour, minute, second int32) (api.BerlinClockState, error) {
 	input := TimeInput{
-		Hour:   int(req.Hour),
-		Minute: int(req.Minute),
-		Second: int(req.Second),
+		Hour:   int(hour),
+		Minute: int(minute),
+		Second: int(second),
 	}
+
 	if err := ValidateTimeInput(input); err != nil {
-		return nil, err
+		return api.BerlinClockState{}, err
 	}
+
 	state := ComputeBerlinClockState(input)
-	return ConvertToAPIModel(state), nil
+	return *ConvertToAPIModel(state), nil
 }
 
-// ValidateTime implements the OpenAPI endpoint for validating a time input.
-func (s *ApiControllerImpl) ValidateTime(req *api.ApiTimeInput) (*api.ApiValidationResult, error) {
-	input := TimeInput{
-		Hour:   int(req.Hour),
-		Minute: int(req.Minute),
-		Second: int(req.Second),
-	}
-	err := ValidateTimeInput(input)
-	if err != nil {
-		return &api.ApiValidationResult{
-			Valid:        false,
-			ErrorMessage: err.Error(),
-		}, nil
-	}
-	return &api.ApiValidationResult{
-		Valid:        true,
-		ErrorMessage: "",
+// GetTime handles /time requests.
+func (s *ApiControllerImpl) GetTime() (api.TimeResponse, error) {
+	return api.TimeResponse{
+		Hour:   12,
+		Minute: 34,
+		Second: 56,
 	}, nil
 }
