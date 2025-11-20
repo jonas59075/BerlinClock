@@ -26,6 +26,8 @@ jobs:
 
       - name: Go tests
         run: go test ./... -v
+      - name: Validate OpenAPI
+        run: npx @redocly/openapi-cli lint spec/openapi.yaml
 
   frontend:
     name: Frontend (Elm)
