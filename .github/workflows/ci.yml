@@ -19,9 +19,11 @@ jobs:
           go-version: '1.22.x'
 
       - name: Go mod tidy
+        working-directory: .
         run: go mod tidy
 
       - name: Go tests
+        working-directory: .
         run: go test ./... -v
 
   frontend:
