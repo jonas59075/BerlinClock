@@ -2,6 +2,7 @@ package berlinclock
 
 import (
 	"fmt"
+	"strings"
 
 	api "github.com/jonas59075/BerlinClock/backend/api/go"
 )
@@ -15,11 +16,15 @@ type TimeInput struct {
 
 // BerlinClockState represents the domain state of the Berlin Clock.
 type BerlinClockState struct {
-	SecondsLamp   string
-	FiveHourRow   string
-	OneHourRow    string
-	FiveMinuteRow string
-	OneMinuteRow  string
+	SecondsLamp      string
+	FiveHourRow      string
+	OneHourRow       string
+	FiveMinuteRow    string
+	OneMinuteRow     string
+	FiveHoursRow     []string
+	SingleHoursRow   []string
+	FiveMinutesRow   []string
+	SingleMinutesRow []string
 }
 
 // ValidateTimeInput validates the given TimeInput.
@@ -94,22 +99,30 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	}
 
 	return BerlinClockState{
-		SecondsLamp:   secondsLamp,
-		FiveHourRow:   fiveHourRow,
-		OneHourRow:    oneHourRow,
-		FiveMinuteRow: fiveMinuteRow,
-		OneMinuteRow:  oneMinuteRow,
+		SecondsLamp:      secondsLamp,
+		FiveHourRow:      fiveHourRow,
+		OneHourRow:       oneHourRow,
+		FiveMinuteRow:    fiveMinuteRow,
+		OneMinuteRow:     oneMinuteRow,
+		FiveHoursRow:     strings.Split(fiveHourRow, ""),
+		SingleHoursRow:   strings.Split(oneHourRow, ""),
+		FiveMinutesRow:   strings.Split(fiveMinuteRow, ""),
+		SingleMinutesRow: strings.Split(oneMinuteRow, ""),
 	}
 }
 
 // ConvertToAPIModel maps a domain BerlinClockState to API BerlinClockState.
 func ConvertToAPIModel(state BerlinClockState) *api.BerlinClockState {
 	return &api.BerlinClockState{
-		SecondsLamp:   state.SecondsLamp,
-		FiveHourRow:   state.FiveHourRow,
-		OneHourRow:    state.OneHourRow,
-		FiveMinuteRow: state.FiveMinuteRow,
-		OneMinuteRow:  state.OneMinuteRow,
+		SecondsLamp:      state.SecondsLamp,
+		FiveHourRow:      state.FiveHourRow,
+		OneHourRow:       state.OneHourRow,
+		FiveMinuteRow:    state.FiveMinuteRow,
+		OneMinuteRow:     state.OneMinuteRow,
+		FiveHoursRow:     state.FiveHoursRow,
+		SingleHoursRow:   state.SingleHoursRow,
+		FiveMinutesRow:   state.FiveMinutesRow,
+		SingleMinutesRow: state.SingleMinutesRow,
 	}
 }
 
