@@ -4,11 +4,13 @@ type alias Model =
     { hours : Int
     , minutes : Int
     , seconds : Int
+    , error : Maybe String
     }
 
 init : Model
 init =
-    { hours = 12
-    , minutes = 34
-    , seconds = 56
+    { hours = 0
+    , minutes = 0
+    , seconds = 0
+    , error = Nothing
     }
