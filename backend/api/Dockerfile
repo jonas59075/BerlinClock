@@ -1,15 +1,13 @@
-FROM golang:1.19 AS build
-WORKDIR /go/src
-COPY go ./go
-COPY main.go .
-COPY go.sum .
-COPY go.mod .
+FROM golang:1.22 AS build
+WORKDIR /app
+COPY go.* ./
+RUN go mod download
+COPY . .
+WORKDIR /app/cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o /server
 
-ENV CGO_ENABLED=0
-
-RUN go build -o api .
-
-FROM scratch AS runtime
-COPY --from=build /go/src/api ./
-EXPOSE 8080/tcp
-ENTRYPOINT ["./api"]
+FROM alpine:3.19
+WORKDIR /root/
+COPY --from=build /server .
+EXPOSE 8080
+ENTRYPOINT ["./server"]
