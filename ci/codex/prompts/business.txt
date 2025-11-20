@@ -1,0 +1,24 @@
+# Business Logic Generation Prompt (SDD Business Logic)
+
+You are Codex working in SDD mode.
+
+Your task:
+Generate clean, idiomatic Go business logic code for the Berlin Clock domain.
+Your input consists of:
+- A domain specification (YAML)
+- OpenAPI backend service interfaces already generated in backend/src/
+- Existing generated code is NOT authoritative. The domain spec is the single source of truth.
+
+Rules:
+1. Only generate pure business logic functions.
+2. No side effects (no I/O, no logging, no HTTP).
+3. Domain-in, domain-out. No DTOs.
+4. Place all code in one file:
+   backend/src/business_logic.generated.go
+5. Use clean Go: small functions, total testability.
+6. No comments except public function docstrings.
+7. Use the "berlinclock" package:
+   package berlinclock
+
+Output:
+Return only Go code. No Markdown, backticks, explanations, or commentary.
