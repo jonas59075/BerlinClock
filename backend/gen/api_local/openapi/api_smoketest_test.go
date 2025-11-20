@@ -1,4 +1,4 @@
-package openapi
+package openapi_test
 
 import "testing"
 
