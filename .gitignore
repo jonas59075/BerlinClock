@@ -33,3 +33,9 @@ go.work.sum
 
 backend/gen/api/.openapi-generator/
 
+# Frontend dependencies
+node_modules/
+frontend/node_modules/
+elm-stuff/
+frontend/elm-stuff/
+
