@@ -2,10 +2,14 @@
   "name": "berlinclock-frontend",
   "version": "1.0.0",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite"
+    "setup-elm-registry": "node scripts/setup-elm-registry.js",
+    "prebuild": "npm run setup-elm-registry",
+    "predev": "npm run setup-elm-registry",
+    "build": "cross-env ELM_HOME=$PWD/../elm.tmp vite build",
+    "dev": "cross-env ELM_HOME=$PWD/../elm.tmp vite"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "elm": "^0.19.1-5",
     "elm-tooling": "^1.14.0",
     "vite": "^5.0.0",

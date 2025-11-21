@@ -162,6 +162,16 @@ stringFromBerlinClockStateFiveHoursRow model =
             "O"
 
 
+intFromBerlinClockStateFiveHoursRow : BerlinClockStateFiveHoursRow -> Int
+intFromBerlinClockStateFiveHoursRow model =
+    case model of
+        BerlinClockStateFiveHoursRowR ->
+            0
+
+        BerlinClockStateFiveHoursRowO ->
+            1
+
+
 encodeBerlinClockStateFiveHoursRow : BerlinClockStateFiveHoursRow -> Json.Encode.Value
 encodeBerlinClockStateFiveHoursRow =
     Json.Encode.int << intFromBerlinClockStateFiveHoursRow
@@ -175,6 +185,16 @@ stringFromBerlinClockStateSingleHoursRow model =
 
         BerlinClockStateSingleHoursRowO ->
             "O"
+
+
+intFromBerlinClockStateSingleHoursRow : BerlinClockStateSingleHoursRow -> Int
+intFromBerlinClockStateSingleHoursRow model =
+    case model of
+        BerlinClockStateSingleHoursRowR ->
+            0
+
+        BerlinClockStateSingleHoursRowO ->
+            1
 
 
 encodeBerlinClockStateSingleHoursRow : BerlinClockStateSingleHoursRow -> Json.Encode.Value
@@ -195,6 +215,19 @@ stringFromBerlinClockStateFiveMinutesRow model =
             "O"
 
 
+intFromBerlinClockStateFiveMinutesRow : BerlinClockStateFiveMinutesRow -> Int
+intFromBerlinClockStateFiveMinutesRow model =
+    case model of
+        BerlinClockStateFiveMinutesRowY ->
+            0
+
+        BerlinClockStateFiveMinutesRowR ->
+            1
+
+        BerlinClockStateFiveMinutesRowO ->
+            2
+
+
 encodeBerlinClockStateFiveMinutesRow : BerlinClockStateFiveMinutesRow -> Json.Encode.Value
 encodeBerlinClockStateFiveMinutesRow =
     Json.Encode.int << intFromBerlinClockStateFiveMinutesRow
@@ -208,6 +241,16 @@ stringFromBerlinClockStateSingleMinutesRow model =
 
         BerlinClockStateSingleMinutesRowO ->
             "O"
+
+
+intFromBerlinClockStateSingleMinutesRow : BerlinClockStateSingleMinutesRow -> Int
+intFromBerlinClockStateSingleMinutesRow model =
+    case model of
+        BerlinClockStateSingleMinutesRowY ->
+            0
+
+        BerlinClockStateSingleMinutesRowO ->
+            1
 
 
 encodeBerlinClockStateSingleMinutesRow : BerlinClockStateSingleMinutesRow -> Json.Encode.Value
@@ -271,7 +314,7 @@ berlinClockStateSecondsLampDecoder =
 
 berlinClockStateFiveHoursRowDecoder : Json.Decode.Decoder BerlinClockStateFiveHoursRow
 berlinClockStateFiveHoursRowDecoder =
-    Json.Decode.int
+    Json.Decode.string
         |> Json.Decode.andThen
             (\value ->
                 case value of
@@ -282,14 +325,14 @@ berlinClockStateFiveHoursRowDecoder =
                         Json.Decode.succeed BerlinClockStateFiveHoursRowO
 
                     other ->
-                        Json.Decode.fail <| "Unknown type: " ++ String.fromInt other
+                        Json.Decode.fail <| "Unknown type: " ++ other
             )
 
 
 
 berlinClockStateSingleHoursRowDecoder : Json.Decode.Decoder BerlinClockStateSingleHoursRow
 berlinClockStateSingleHoursRowDecoder =
-    Json.Decode.int
+    Json.Decode.string
         |> Json.Decode.andThen
             (\value ->
                 case value of
@@ -300,14 +343,14 @@ berlinClockStateSingleHoursRowDecoder =
                         Json.Decode.succeed BerlinClockStateSingleHoursRowO
 
                     other ->
-                        Json.Decode.fail <| "Unknown type: " ++ String.fromInt other
+                        Json.Decode.fail <| "Unknown type: " ++ other
             )
 
 
 
 berlinClockStateFiveMinutesRowDecoder : Json.Decode.Decoder BerlinClockStateFiveMinutesRow
 berlinClockStateFiveMinutesRowDecoder =
-    Json.Decode.int
+    Json.Decode.string
         |> Json.Decode.andThen
             (\value ->
                 case value of
@@ -321,14 +364,14 @@ berlinClockStateFiveMinutesRowDecoder =
                         Json.Decode.succeed BerlinClockStateFiveMinutesRowO
 
                     other ->
-                        Json.Decode.fail <| "Unknown type: " ++ String.fromInt other
+                        Json.Decode.fail <| "Unknown type: " ++ other
             )
 
 
 
 berlinClockStateSingleMinutesRowDecoder : Json.Decode.Decoder BerlinClockStateSingleMinutesRow
 berlinClockStateSingleMinutesRowDecoder =
-    Json.Decode.int
+    Json.Decode.string
         |> Json.Decode.andThen
             (\value ->
                 case value of
@@ -339,7 +382,7 @@ berlinClockStateSingleMinutesRowDecoder =
                         Json.Decode.succeed BerlinClockStateSingleMinutesRowO
 
                     other ->
-                        Json.Decode.fail <| "Unknown type: " ++ String.fromInt other
+                        Json.Decode.fail <| "Unknown type: " ++ other
             )
 
 

@@ -48,3 +48,4 @@ frontend/dist/
 # Elm build artifacts
 artifacts.dat
 **/artifacts.dat
+elm.tmp/0.19.1/packages/registry.dat
