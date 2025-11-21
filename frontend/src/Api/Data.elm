@@ -22,7 +22,6 @@ module Api.Data exposing
     , timeResponseDecoder
     )
 
-import Api
 import Dict
 import Json.Decode
 import Json.Encode
