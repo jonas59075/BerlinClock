@@ -36,6 +36,15 @@ backend/gen/api/.openapi-generator/
 # Frontend dependencies
 node_modules/
 frontend/node_modules/
+frontend/.elm-home/
 elm-stuff/
 frontend/elm-stuff/
 
+# Frontend build outputs
+dist/
+frontend/dist/
+
+
+# Elm build artifacts
+artifacts.dat
+**/artifacts.dat
