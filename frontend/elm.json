@@ -25,5 +25,6 @@
             "elm-explorations/test": "2.0.0"
         },
         "indirect": {}
-    }
+    },
+    "offline": true
 }
