@@ -18,7 +18,7 @@ module Api.Request.Default exposing
     , timeGet
     )
 
-import Api
+import Api.Api as Api
 import Api.Data exposing (..)
 import Dict
 import Http
