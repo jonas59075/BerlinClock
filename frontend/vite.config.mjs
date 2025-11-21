@@ -3,8 +3,9 @@ import elmPlugin from "vite-plugin-elm";
 import { fileURLToPath } from "url";
 import path from "path";
 
-const elmHome = process.env.ELM_HOME
-  || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "./.elm-home");
+const elmHome =
+  process.env.ELM_HOME
+  || path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../elm.tmp");
 
 process.env.ELM_HOME = elmHome;
 
