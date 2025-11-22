@@ -197,8 +197,8 @@ clockView display =
             [ singleLamp "Sekunden" display.secondsLamp
             , lampRow "5 Stunden" 96 46 10 display.fiveHoursRow
             , lampRow "1 Stunde" 96 46 10 display.singleHoursRow
-            , lampRow "5 Minuten" 64 34 8 display.fiveMinutesRow
-            , lampRow "1 Minute" 64 34 8 display.singleMinutesRow
+            , lampRow "5 Minuten" 32 32 6 display.fiveMinutesRow
+            , lampRow "1 Minute" 94 42 12 display.singleMinutesRow
             ]
         ]
 
