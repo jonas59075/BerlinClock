@@ -519,6 +519,7 @@ clockStyle : List (Html.Attribute msg)
 clockStyle =
     [ style "display" "flex"
     , style "flex-direction" "column"
+    , style "align-items" "center"
     , style "gap" "14px"
     , style "padding" "20px"
     , style "background" "radial-gradient(circle at 50% 0%, rgba(255, 204, 0, 0.1), rgba(229, 9, 20, 0.12) 38%, transparent 52%), rgba(10, 12, 25, 0.8)"
