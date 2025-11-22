@@ -1,0 +1,56 @@
+name: Security – CodeQL
+
+# Security-Workflow zur statischen Codeanalyse mit CodeQL
+# für Go- und JavaScript/TypeScript-Code. Läuft auf Änderungen
+# und wöchentlich geplant.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 3 * * 1" # Jeden Montag um 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: CodeQL Analyse
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["go", "javascript"]
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      # CodeQL-Initialisierung mit expliziter Sprachenliste.
+      - name: CodeQL initialisieren
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      # Abhängigkeitsaufbau (Go/Node) vor der Analyse.
+      - name: Abhängigkeiten vorbereiten
+        run: |
+          if [ "${{ matrix.language }}" = "go" ]; then
+            cd backend
+            go mod download
+          else
+            cd frontend
+            if [ -f package-lock.json ]; then
+              npm ci --ignore-scripts
+            elif [ -f package.json ]; then
+              npm install --ignore-scripts
+            fi
+          fi
+
+      # Analyse-Lauf; CodeQL übernimmt Build-Schritte wo möglich.
+      - name: CodeQL Analysieren
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
