@@ -1,0 +1,62 @@
+name: Build & Deploy BerlinClock (Extended)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version tag
+        id: version
+        run: echo "tag=v$(date +'%Y.%m.%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build Backend
+        run: |
+          docker build --pull --cache-from ghcr.io/${{ github.repository_owner }}/berlinclock-backend:latest \
+            -t ghcr.io/${{ github.repository_owner }}/berlinclock-backend:${{ steps.version.outputs.tag }} \
+            -t ghcr.io/${{ github.repository_owner }}/berlinclock-backend:latest \
+            ./backend
+
+      - name: Build Frontend
+        run: |
+          docker build --pull --cache-from ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:latest \
+            -t ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:${{ steps.version.outputs.tag }} \
+            -t ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:latest \
+            ./frontend
+
+      - name: Push Backend
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/berlinclock-backend:${{ steps.version.outputs.tag }}
+          docker push ghcr.io/${{ github.repository_owner }}/berlinclock-backend:latest
+
+      - name: Push Frontend
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:${{ steps.version.outputs.tag }}
+          docker push ghcr.io/${{ github.repository_owner }}/berlinclock-frontend:latest
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Pull new images
+        run: |
+          cd C:\\docker\\berlinclock
+          docker compose pull
+
+      - name: Health check
+        run: |
+          echo "Checking API..."
+          for i in {1..10}; do curl -sf http://localhost:8500/health && exit 0; sleep 2; done
+          echo "API health check failed"; exit 1
+
+      - name: Restart containers
+        run: |
+          cd C:\\docker\\berlinclock
+          docker compose up -d
