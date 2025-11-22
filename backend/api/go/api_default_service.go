@@ -40,7 +40,7 @@ func computeBerlinClockState(hour, minute, second int) BerlinClockState {
 	// Seconds lamp
 	secondsLamp := "O"
 	if second%2 == 0 {
-		secondsLamp = "X"
+		secondsLamp = "Y"
 	}
 
 	// Five-hour row (4 lamps)
@@ -48,7 +48,7 @@ func computeBerlinClockState(hour, minute, second int) BerlinClockState {
 	fiveHourRow := ""
 	for i := 0; i < 4; i++ {
 		if i < litFiveHour {
-			fiveHourRow += "X"
+			fiveHourRow += "R"
 		} else {
 			fiveHourRow += "O"
 		}
@@ -59,7 +59,7 @@ func computeBerlinClockState(hour, minute, second int) BerlinClockState {
 	oneHourRow := ""
 	for i := 0; i < 4; i++ {
 		if i < restHour {
-			oneHourRow += "X"
+			oneHourRow += "R"
 		} else {
 			oneHourRow += "O"
 		}
@@ -93,14 +93,14 @@ func computeBerlinClockState(hour, minute, second int) BerlinClockState {
 	}
 
 	return BerlinClockState{
-		SecondsLamp:     secondsLamp,
-		FiveHourRow:     fiveHourRow,
-		OneHourRow:      oneHourRow,
-		FiveMinuteRow:   fiveMinuteRow,
-		OneMinuteRow:    oneMinuteRow,
-		FiveHoursRow:    strings.Split(fiveHourRow, ""),
-		SingleHoursRow:  strings.Split(oneHourRow, ""),
-		FiveMinutesRow:  strings.Split(fiveMinuteRow, ""),
+		SecondsLamp:      secondsLamp,
+		FiveHourRow:      fiveHourRow,
+		OneHourRow:       oneHourRow,
+		FiveMinuteRow:    fiveMinuteRow,
+		OneMinuteRow:     oneMinuteRow,
+		FiveHoursRow:     strings.Split(fiveHourRow, ""),
+		SingleHoursRow:   strings.Split(oneHourRow, ""),
+		FiveMinutesRow:   strings.Split(fiveMinuteRow, ""),
 		SingleMinutesRow: strings.Split(oneMinuteRow, ""),
 	}
 }
