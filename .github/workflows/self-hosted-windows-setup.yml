@@ -1,0 +1,63 @@
+name: Self-Hosted Runner – Windows Setup Check
+
+# Hilfs-Workflow, um den Windows-Self-Hosted-Runner zu validieren.
+# Prüft Docker-Verfügbarkeit, Laufzeitumgebung und relevante Pfade,
+# damit Deployments zuverlässig funktionieren.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1" # Wöchentliche Prüfung montags
+
+jobs:
+  verify-runner:
+    name: Windows Runner prüfen
+    runs-on:
+      - self-hosted
+      - Windows
+      - X64
+    steps:
+      - name: PowerShell-Version & Systeminfo
+        shell: pwsh
+        run: |
+          Write-Host "PowerShell Version:" $PSVersionTable.PSVersion
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, OSArchitecture
+
+      - name: Docker-Status prüfen
+        shell: pwsh
+        run: |
+          docker info
+          docker version
+
+      - name: Verfügbare Ressourcen auflisten
+        shell: pwsh
+        run: |
+          Get-PSDrive -PSProvider FileSystem
+          Get-Volume | Select-Object DriveLetter, FileSystemLabel, SizeRemaining, Size
+
+      - name: Compose-Pfade validieren
+        shell: pwsh
+        run: |
+          $composePath = "C:\\docker\\berlinclock\\docker-compose.yml"
+          if (Test-Path $composePath) {
+            Write-Host "Compose-Datei gefunden unter: $composePath"
+          } else {
+            Write-Warning "Compose-Datei fehlt unter: $composePath"
+          }
+
+      - name: Beispiel-Login zu GHCR testen (dry-run)
+        shell: pwsh
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          if (-not $env:GHCR_TOKEN) {
+            Write-Warning "Kein GHCR Token konfiguriert – Login-Test wird übersprungen."
+            return
+          }
+          echo $env:GHCR_TOKEN | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker logout ghcr.io
+
+      - name: Optionalen Cleanup-Slot dokumentieren
+        shell: pwsh
+        run: |
+          Write-Host "Cleanup optional: docker image prune -f" \
+            "oder Stop nicht benötigter Container, falls freier Speicher knapp wird."
