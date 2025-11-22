@@ -1,4 +1,4 @@
-module github.com/jonas59075/BerlinClock/backend/api
+module github.com/jonas59075/berlinclock/backend/api
 
 go 1.18
 

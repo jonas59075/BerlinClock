@@ -62,4 +62,4 @@ Die Pipelines prüfen:
 - ob Specs unverändert bleiben
 - ob generierter Code deterministisch ist
 
-![CI](https://github.com/jonas59075/BerlinClock/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/jonas59075/berlinclock/actions/workflows/ci.yml/badge.svg)

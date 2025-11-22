@@ -1,7 +1,7 @@
 package main
 
 import (
-	openapi "github.com/jonas59075/BerlinClock/backend/api/go"
+	openapi "github.com/jonas59075/berlinclock/backend/api/go"
 	"log"
 	"net/http"
 )

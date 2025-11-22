@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	api "github.com/jonas59075/BerlinClock/backend/api/go"
+	api "github.com/jonas59075/berlinclock/backend/api/go"
 )
 
 // TimeInput represents the domain time input.
