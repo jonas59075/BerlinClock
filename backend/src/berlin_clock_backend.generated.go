@@ -45,7 +45,7 @@ func ValidateTimeInput(input TimeInput) error {
 func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	var secondsLamp string
 	if input.Second%2 == 0 {
-		secondsLamp = "X"
+		secondsLamp = "Y"
 	} else {
 		secondsLamp = "O"
 	}
@@ -55,7 +55,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	fiveHourRow := ""
 	for i := 0; i < 4; i++ {
 		if i < litFiveHour {
-			fiveHourRow += "X"
+			fiveHourRow += "R"
 		} else {
 			fiveHourRow += "O"
 		}
@@ -66,7 +66,7 @@ func ComputeBerlinClockState(input TimeInput) BerlinClockState {
 	oneHourRow := ""
 	for i := 0; i < 4; i++ {
 		if i < restHour {
-			oneHourRow += "X"
+			oneHourRow += "R"
 		} else {
 			oneHourRow += "O"
 		}
