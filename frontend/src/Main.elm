@@ -10,7 +10,7 @@ import Api.Api
 import Api.Data
 import Api.Request.Default
 import Browser
-import Html exposing (Html, div, h1, p, span, text)
+import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Http
 import String
@@ -178,9 +178,7 @@ view model =
     in
     div pageStyle
         [ div containerStyle
-            [ headerSection
-            , statusBanner model.status timeText
-            , clockView display
+            [ clockView display
             , digitalTimeView timeText
             ]
         ]
@@ -189,16 +187,12 @@ view model =
 clockView : BerlinClockDisplay -> Html Msg
 clockView display =
     div clockCardStyle
-        [ div clockHeaderStyle
-            [ h1 clockTitleStyle [ text "Berlin-Uhr" ]
-            , p clockSubtitleStyle [ text "Legendäres Wahrzeichen am Ku'damm, inspiriert in modernem Glühen." ]
-            ]
-        , div clockStyle
-            [ singleLamp "Sekunden" display.secondsLamp
-            , lampRow "5 Stunden" 96 46 10 display.fiveHoursRow
-            , lampRow "1 Stunde" 96 46 10 display.singleHoursRow
-            , lampRow "5 Minuten" 32 32 6 display.fiveMinutesRow
-            , lampRow "1 Minute" 94 42 12 display.singleMinutesRow
+        [ div clockStyle
+            [ singleLamp display.secondsLamp
+            , lampRow 96 46 10 display.fiveHoursRow
+            , lampRow 96 46 10 display.singleHoursRow
+            , lampRow 32 32 6 display.fiveMinutesRow
+            , lampRow 94 42 12 display.singleMinutesRow
             ]
         ]
 
@@ -210,19 +204,6 @@ digitalTimeView timeText =
         , div digitalValueStyle [ text (timeText ++ " Uhr") ]
         , p digitalHintStyle [ text "Die Berliner Uhr zeigt Stunden und Minuten in Farbreihen. Die Zeitanzeige darunter liefert das exakte 24-Stunden-Format." ]
         ]
-
-
-statusBanner : Status -> String -> Html Msg
-statusBanner status timeText =
-    case status of
-        Loading ->
-            div infoBannerStyle [ text "Lade aktuelle Uhrzeit..." ]
-
-        Loaded ->
-            div successBannerStyle [ text ("Aktuelle Zeit: " ++ timeText) ]
-
-        Error message ->
-            div errorBannerStyle [ text ("Fehler beim Laden: " ++ message) ]
 
 
 clockDisplayFromState : Maybe Api.Data.BerlinClockState -> BerlinClockDisplay
@@ -344,28 +325,17 @@ singleMinutesLamp lampState =
 -- VIEW HELPERS
 
 
-headerSection : Html Msg
-headerSection =
-    div headerStyle
-        [ div headerBadgeStyle [ text "Live aus Berlin" ]
-        , h1 titleStyle [ text "Berliner Uhr" ]
-        , p subtitleStyle [ text "Legendäres Design, neu interpretiert: Die farbigen Lampen der Berlin-Uhr werden jede Sekunde automatisch aktualisiert." ]
+singleLamp : LampColor -> Html Msg
+singleLamp lampColor =
+    div rowWrapperStyle
+        [ div [ style "display" "flex" ] [ lamp 72 72 "50%" lampColor ]
         ]
 
 
-singleLamp : String -> LampColor -> Html Msg
-singleLamp label lampColor =
+lampRow : Int -> Int -> Int -> List LampColor -> Html Msg
+lampRow lampWidth lampHeight gap lamps =
     div rowWrapperStyle
-        [ span rowLabelStyle [ text label ]
-        , div [ style "display" "flex" ] [ lamp 72 72 "50%" lampColor ]
-        ]
-
-
-lampRow : String -> Int -> Int -> Int -> List LampColor -> Html Msg
-lampRow label lampWidth lampHeight gap lamps =
-    div rowWrapperStyle
-        [ span rowLabelStyle [ text label ]
-        , div [ style "display" "flex", style "gap" (String.fromInt gap ++ "px") ] (List.map (lamp lampWidth lampHeight "14px") lamps)
+        [ div [ style "display" "flex", style "gap" (String.fromInt gap ++ "px") ] (List.map (lamp lampWidth lampHeight "14px") lamps)
         ]
 
 
@@ -437,45 +407,10 @@ containerStyle =
     , style "padding" "42px 38px"
     , style "box-shadow" "0 20px 60px rgba(0, 0, 0, 0.45)"
     , style "backdrop-filter" "blur(8px)"
-    ]
-
-
-headerStyle : List (Html.Attribute msg)
-headerStyle =
-    [ style "display" "flex"
+    , style "display" "flex"
     , style "flex-direction" "column"
-    , style "gap" "10px"
-    , style "margin-bottom" "18px"
-    ]
-
-
-headerBadgeStyle : List (Html.Attribute msg)
-headerBadgeStyle =
-    [ style "display" "inline-flex"
     , style "align-items" "center"
-    , style "gap" "8px"
-    , style "padding" "8px 12px"
-    , style "border-radius" "999px"
-    , style "background" "rgba(255, 204, 0, 0.12)"
-    , style "color" "#facc15"
-    , style "font-weight" "700"
-    , style "font-size" "13px"
-    ]
-
-
-titleStyle : List (Html.Attribute msg)
-titleStyle =
-    [ style "margin" "0"
-    , style "font-size" "40px"
-    , style "letter-spacing" "-0.03em"
-    ]
-
-
-subtitleStyle : List (Html.Attribute msg)
-subtitleStyle =
-    [ style "margin" "0"
-    , style "color" "#cbd5e1"
-    , style "line-height" "1.5"
+    , style "text-align" "center"
     ]
 
 
@@ -487,31 +422,6 @@ clockCardStyle =
     , style "border-radius" "16px"
     , style "padding" "18px"
     , style "box-shadow" "0 18px 46px rgba(0, 0, 0, 0.35)"
-    ]
-
-
-clockHeaderStyle : List (Html.Attribute msg)
-clockHeaderStyle =
-    [ style "display" "flex"
-    , style "align-items" "center"
-    , style "justify-content" "space-between"
-    , style "gap" "12px"
-    , style "margin-bottom" "12px"
-    ]
-
-
-clockTitleStyle : List (Html.Attribute msg)
-clockTitleStyle =
-    [ style "margin" "0"
-    , style "font-size" "28px"
-    ]
-
-
-clockSubtitleStyle : List (Html.Attribute msg)
-clockSubtitleStyle =
-    [ style "margin" "0"
-    , style "color" "#9ca3af"
-    , style "font-size" "15px"
     ]
 
 
@@ -532,16 +442,8 @@ rowWrapperStyle : List (Html.Attribute msg)
 rowWrapperStyle =
     [ style "display" "flex"
     , style "align-items" "center"
+    , style "justify-content" "center"
     , style "gap" "14px"
-    ]
-
-
-rowLabelStyle : List (Html.Attribute msg)
-rowLabelStyle =
-    [ style "width" "110px"
-    , style "font-weight" "700"
-    , style "letter-spacing" "0.01em"
-    , style "color" "#e2e8f0"
     ]
 
 
@@ -556,6 +458,8 @@ digitalTimeStyle =
     , style "display" "flex"
     , style "flex-direction" "column"
     , style "gap" "6px"
+    , style "align-items" "center"
+    , style "text-align" "center"
     ]
 
 
@@ -582,38 +486,5 @@ digitalHintStyle =
     [ style "margin" "0"
     , style "color" "#cbd5e1"
     , style "line-height" "1.4"
-    ]
-
-
-infoBannerStyle : List (Html.Attribute msg)
-infoBannerStyle =
-    [ style "background" "rgba(59, 130, 246, 0.12)"
-    , style "border" "1px solid rgba(59, 130, 246, 0.35)"
-    , style "color" "#bfdbfe"
-    , style "padding" "12px 16px"
-    , style "border-radius" "12px"
-    , style "margin-bottom" "14px"
-    ]
-
-
-successBannerStyle : List (Html.Attribute msg)
-successBannerStyle =
-    [ style "background" "rgba(74, 222, 128, 0.12)"
-    , style "border" "1px solid rgba(74, 222, 128, 0.4)"
-    , style "color" "#bbf7d0"
-    , style "padding" "12px 16px"
-    , style "border-radius" "12px"
-    , style "margin-bottom" "14px"
-    ]
-
-
-errorBannerStyle : List (Html.Attribute msg)
-errorBannerStyle =
-    [ style "background" "rgba(239, 68, 68, 0.12)"
-    , style "border" "1px solid rgba(239, 68, 68, 0.45)"
-    , style "color" "#fecdd3"
-    , style "padding" "12px 16px"
-    , style "border-radius" "12px"
-    , style "margin-bottom" "14px"
     ]
 
