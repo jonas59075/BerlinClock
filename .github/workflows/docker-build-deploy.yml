@@ -13,8 +13,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ghcr.io/${{ toLower(github.repository) }}/backend
-  IMAGE_FRONTEND: ghcr.io/${{ toLower(github.repository) }}/frontend
+  REPOSITORY: ${{ github.repository }}
 
 jobs:
   build:
@@ -27,6 +26,12 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
+
+      # Repository-Name in Kleinbuchstaben für GHCR-Image-Namen umwandeln.
+      - name: Image-Namen ableiten
+        run: |
+          echo "IMAGE_BACKEND=${REGISTRY}/${REPOSITORY,,}/backend" >> $GITHUB_ENV
+          echo "IMAGE_FRONTEND=${REGISTRY}/${REPOSITORY,,}/frontend" >> $GITHUB_ENV
 
       # Buildx ermöglicht parallele und spätere Multi-Arch-Builds.
       - name: Docker Buildx aktivieren
