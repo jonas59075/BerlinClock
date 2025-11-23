@@ -1,9 +1,0 @@
-name: 30-Release
-
-on:
-  push:
-    branches: ["main"]
-
-jobs:
-  run-release:
-    uses: ./.github/workflows/30-reusable-release.yml

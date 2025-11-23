@@ -1,0 +1,94 @@
+name: CI/CD-Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+
+  build:
+    name: 1. Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build Backend
+        run: |
+          cd backend
+          go build -o berlinclock-api
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+  test:
+    name: 2. Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "no tests defined"
+
+  codeql:
+    name: 3. CodeQL Scan
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: go, javascript
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
+
+  docker_build:
+    name: 4. Docker Build + Push
+    runs-on: ubuntu-latest
+    needs: codeql
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: GHCR Login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build Backend Image
+        run: |
+          docker build backend -t ghcr.io/jonas59075/berlinclock-backend:latest
+          docker push ghcr.io/jonas59075/berlinclock-backend:latest
+
+      - name: Build Frontend Image
+        run: |
+          docker build frontend -t ghcr.io/jonas59075/berlinclock-frontend:latest
+          docker push ghcr.io/jonas59075/berlinclock-frontend:latest
+
+  deploy:
+    name: 5. Windows Deploy
+    runs-on: [self-hosted, Windows, X64]
+    needs: docker_build
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: GHCR Login
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+      - name: Switch directory
+        run: Set-Location "C:\docker\berlinclock"
+      - name: Pull images
+        run: docker compose pull
+      - name: Restart
+        run: docker compose up -d

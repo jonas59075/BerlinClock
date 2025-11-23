@@ -1,9 +1,0 @@
-name: 20-Docker-Build
-
-on:
-  push:
-    branches: ["main"]
-
-jobs:
-  run-docker-build:
-    uses: ./.github/workflows/20-reusable-docker-build.yml
