@@ -5,5 +5,11 @@ on:
   pull_request:
 
 jobs:
+  root:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "root"
+
   call-build:
+    needs: root
     uses: ./.github/workflows/reusable-build.yml
