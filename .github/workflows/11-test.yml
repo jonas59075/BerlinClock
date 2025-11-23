@@ -1,0 +1,9 @@
+name: 11-Test
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  run-test:
+    uses: ./.github/workflows/11-reusable-test.yml

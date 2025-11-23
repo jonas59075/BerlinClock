@@ -1,0 +1,9 @@
+name: 40-Docker-Deploy
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  run-docker-deploy:
+    uses: ./.github/workflows/40-reusable-docker-deploy.yml

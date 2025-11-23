@@ -1,4 +1,4 @@
-name: Root
+name: 00-Root
 
 on:
   push:
@@ -8,4 +8,5 @@ jobs:
   root:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Root workflow entrypoint – required by GitHub"
+      - name: Root entry
+        run: echo "Root workflow entrypoint"

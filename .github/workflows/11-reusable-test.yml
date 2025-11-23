@@ -1,3 +1,5 @@
+name: 11-Reusable-Test
+
 on:
   workflow_call:
 
@@ -6,5 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Execute Tests
         run: echo "No tests defined yet."

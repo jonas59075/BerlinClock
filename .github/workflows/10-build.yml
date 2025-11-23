@@ -1,0 +1,10 @@
+name: 10-Build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  run-build:
+    uses: ./.github/workflows/10-reusable-build.yml

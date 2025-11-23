@@ -1,3 +1,5 @@
+name: 40-Reusable-Docker-Deploy
+
 on:
   workflow_call:
 
@@ -7,12 +9,16 @@ jobs:
     defaults:
       run:
         shell: powershell
+
     steps:
       - name: GHCR Login
         run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Switch Dir
         run: Set-Location "C:\\docker\\berlinclock"
+
       - name: Pull Images
         run: docker compose pull
+
       - name: Restart
         run: docker compose up -d
