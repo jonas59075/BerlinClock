@@ -9,7 +9,11 @@ jobs:
         shell: powershell
     steps:
       - name: Login GHCR
-        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
       - name: Navigate
         run: Set-Location "C:\docker\berlinclock"
       - name: Pull New Images
