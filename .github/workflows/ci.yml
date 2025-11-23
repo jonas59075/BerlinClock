@@ -98,12 +98,13 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Cleanup old containers
-        run: |
+      # - name: Cleanup old containers
+      #  run: |
           # docker rm -f berlinclock-backend -ErrorAction SilentlyContinue
           # docker rm -f berlinclock-frontend -ErrorAction SilentlyContinue
-          docker rm -f berlinclock-backend 2>$null || $true
-          docker rm -f berlinclock-frontend 2>$null || $true
+
+      #    try docker rm -f berlinclock-backend 2>$null except end
+      #    try docker rm -f berlinclock-frontend 2>$null except end
 
 
       - name: Switch directory
@@ -113,5 +114,5 @@ jobs:
         run: docker compose pull
 
       - name: Restart services
-        run: docker compose up -d
+        run: docker compose up -d --force-recreate
 
