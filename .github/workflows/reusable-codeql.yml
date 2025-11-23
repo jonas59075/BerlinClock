@@ -4,13 +4,16 @@ on:
 jobs:
   codeql:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       security-events: write
+
     strategy:
       fail-fast: false
       matrix:
-        language: ["go","javascript"]
+        language: ["go", "javascript"]
+
     steps:
       - uses: actions/checkout@v4
       - uses: github/codeql-action/init@v3

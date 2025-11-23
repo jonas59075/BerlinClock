@@ -4,19 +4,20 @@ on:
 jobs:
   docker_build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - uses:docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
-      - name: Build Backend Image
+      - name: Build Backend Docker Image
         run: |
           docker build backend -t ghcr.io/jonas59075/berlinclock-backend:latest
           docker push ghcr.io/jonas59075/berlinclock-backend:latest
-      - name: Build Frontend Image
+      - name: Build Frontend Docker Image
         run: |
           docker build frontend -t ghcr.io/jonas59075/berlinclock-frontend:latest
           docker push ghcr.io/jonas59075/berlinclock-frontend:latest
