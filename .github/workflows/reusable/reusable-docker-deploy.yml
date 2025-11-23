@@ -1,0 +1,10 @@
+on: workflow_call
+jobs:
+  deploy:
+    runs-on: [self-hosted, Windows, X64]
+    defaults: { run: { shell: powershell } }
+    steps:
+      - run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - run: Set-Location "C:\docker\berlinclock"
+      - run: docker compose pull
+      - run: docker compose up -d

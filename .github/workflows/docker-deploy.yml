@@ -1,24 +1,5 @@
-name: Docker Deploy
-on:
-  push:
-    branches: [ "main" ]
-defaults:
-  run:
-    shell: powershell
+name: Deploy
+on: push
 jobs:
-  docker-deploy:
-    runs-on:
-      - self-hosted
-      - Windows
-      - X64
-    steps:
-      - name: Login to GHCR
-        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-      - name: Navigate to deploy directory
-        run: Set-Location "C:\docker\berlinclock"
-      - name: Pull latest containers
-        run: docker compose -f "C:\docker\berlinclock\docker-compose.yml" pull
-      - name: Restart services
-        run: docker compose -f "C:\docker\berlinclock\docker-compose.yml" up -d
-      - name: Cleanup old images
-        run: docker image prune -f
+  deploy:
+    uses: ./.github/workflows/reusable/reusable-docker-deploy.yml
