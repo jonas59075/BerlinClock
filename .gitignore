@@ -49,3 +49,12 @@ frontend/dist/
 artifacts.dat
 **/artifacts.dat
 elm.tmp/0.19.1/packages/registry.dat
+
+# macOS junk
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+__MACOSX/
+Icon?
+Thumbs.db
