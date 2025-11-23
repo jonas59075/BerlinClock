@@ -1,5 +1,7 @@
 name: Docker Build
-on: push
+on:
+  push:
+    branches: ["main"]
 jobs:
   docker_build:
     uses: ./.github/workflows/reusable/reusable-docker-build.yml

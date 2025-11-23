@@ -1,7 +1,7 @@
 name: Release
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
 jobs:
-  release:
+  call-release:
     uses: ./.github/workflows/reusable/reusable-release.yml
