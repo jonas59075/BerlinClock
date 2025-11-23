@@ -100,8 +100,10 @@ jobs:
 
       - name: Cleanup old containers
         run: |
-          docker rm -f berlinclock-backend -ErrorAction SilentlyContinue
-          docker rm -f berlinclock-frontend -ErrorAction SilentlyContinue
+          # docker rm -f berlinclock-backend -ErrorAction SilentlyContinue
+          # docker rm -f berlinclock-frontend -ErrorAction SilentlyContinue
+          docker rm -f <berlinclock-backend> 2>$null
+          docker rm -f <berlinclock-frontend> 2>$null
 
 
       - name: Switch directory
