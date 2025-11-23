@@ -12,16 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+
       - name: Build Backend
         run: |
-          cd backend
-          go build -o berlinclock-api
-      - uses: actions/setup-node@v4
+          cd backend/src
+          go build -o ../berlinclock-api
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: Build Frontend
         run: |
           cd frontend
@@ -83,12 +89,16 @@ jobs:
     defaults:
       run:
         shell: powershell
+
     steps:
       - name: GHCR Login
         run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
       - name: Switch directory
-        run: Set-Location "C:\docker\berlinclock"
+        run: Set-Location "C:\\docker\\berlinclock"
+
       - name: Pull images
         run: docker compose pull
+
       - name: Restart
         run: docker compose up -d
