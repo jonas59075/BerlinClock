@@ -4,4 +4,4 @@ on:
     branches: ["main"]
 jobs:
   call-release:
-    uses: ./.github/workflows/reusable/reusable-release.yml
+    uses: ./.github/workflows/reusable-release.yml
