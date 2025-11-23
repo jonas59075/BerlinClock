@@ -5,3 +5,4 @@ on:
 jobs:
   deploy:
     uses: ./.github/workflows/reusable/reusable-docker-deploy.yml
+    secrets: inherit

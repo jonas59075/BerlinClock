@@ -5,3 +5,4 @@ on:
 jobs:
   docker_build:
     uses: ./.github/workflows/reusable/reusable-docker-build.yml
+    secrets: inherit
