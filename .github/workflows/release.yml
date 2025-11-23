@@ -1,7 +1,9 @@
 name: Release
 on:
-  push: { branches: ["main"] }
+  push:
+    branches: ["main"]
+
 jobs:
-  release:
-    needs: docker_build
+  call-release:
+    needs: call-docker-build
     uses: ./.github/workflows/reusable-release.yml

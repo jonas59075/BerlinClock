@@ -1,0 +1,11 @@
+on:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute Tests
+        run: echo "No tests defined yet."
