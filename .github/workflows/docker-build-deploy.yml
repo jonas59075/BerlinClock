@@ -88,7 +88,9 @@ jobs:
       # Docker-Login mit bereitgestelltem Token (GHCR_PAT empfohlen).
       - name: Bei GHCR anmelden
         shell: pwsh
-        run: echo "${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}" | docker login $env:REGISTRY -u "${{ github.actor }}" --password-stdin
+        run: |
+          $token = "${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}"
+          echo $token | docker login $env:REGISTRY -u "${{ github.actor }}" --password-stdin
 
       # Sicherstellen, dass die Compose-Datei vorhanden ist (z. B. unter C:\\docker\\berlinclock).
       - name: Compose-Datei validieren
