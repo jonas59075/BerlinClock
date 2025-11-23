@@ -14,5 +14,5 @@ jobs:
         run: Set-Location "C:\docker\berlinclock"
       - name: Pull New Images
         run: docker compose pull
-      - name: Restart Services
+      - name: Restart
         run: docker compose up -d
