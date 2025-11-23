@@ -4,4 +4,4 @@ on:
     branches: ["main"]
 jobs:
   deploy:
-    uses: ./.github/workflows/reusable/reusable-docker-deploy.yml
+    uses: ./.github/workflows/reusable-docker-deploy.yml
