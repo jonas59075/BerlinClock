@@ -74,6 +74,9 @@ jobs:
       - self-hosted
       - Windows
       - X64
+    defaults:
+      run:
+        shell: powershell
     permissions:
       contents: read
       packages: read
@@ -87,12 +90,12 @@ jobs:
 
       # Docker-Login mit bereitgestelltem Token (GHCR_PAT empfohlen).
       - name: Bei GHCR anmelden
-        shell: pwsh
-        run: echo "${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}" | docker login $env:REGISTRY -u "${{ github.actor }}" --password-stdin
+        run: |
+          $token = "${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}"
+          echo $token | docker login $env:REGISTRY -u "${{ github.actor }}" --password-stdin
 
       # Sicherstellen, dass die Compose-Datei vorhanden ist (z. B. unter C:\\docker\\berlinclock).
       - name: Compose-Datei validieren
-        shell: pwsh
         run: |
           $composePath = "C:\\docker\\berlinclock\\docker-compose.yml"
           if (-not (Test-Path $composePath)) {
@@ -101,7 +104,6 @@ jobs:
 
       # Container aktualisieren: Pull + Hochfahren, damit neue Images sofort aktiv werden.
       - name: Container aktualisieren
-        shell: pwsh
         run: |
           $composePath = "C:\\docker\\berlinclock\\docker-compose.yml"
           docker compose -f $composePath pull
@@ -109,5 +111,4 @@ jobs:
 
       # Aufräumen verhindert unnötigen Plattenverbrauch auf dem Runner.
       - name: Ungenutzte Images bereinigen
-        shell: pwsh
         run: docker image prune -f
