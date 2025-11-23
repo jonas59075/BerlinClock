@@ -82,29 +82,29 @@ jobs:
           docker build frontend -t ghcr.io/jonas59075/berlinclock-frontend:latest
           docker push ghcr.io/jonas59075/berlinclock-frontend:latest
 
-deploy:
-  name: 5. Windows Deploy
-  runs-on: [self-hosted, Windows, X64]
-  needs: docker_build
-  defaults:
-    run:
-      shell: powershell
+  deploy:
+    name: 5. Windows Deploy
+    runs-on: [self-hosted, Windows, X64]
+    needs: docker_build
+    defaults:
+      run:
+        shell: powershell
 
-  steps:
-    - name: GHCR Login
-      run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+    steps:
+      - name: GHCR Login
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
 
-    - name: Cleanup old containers
-      run: |
-        docker rm -f berlinclock-backend 2>$null || true
-        docker rm -f berlinclock-frontend 2>$null || true
+      - name: Cleanup old containers
+        run: |
+          docker rm -f berlinclock-backend 2>$null || true
+          docker rm -f berlinclock-frontend 2>$null || true
 
-    - name: Switch directory
-      run: Set-Location "C:\\docker\\berlinclock"
+      - name: Switch directory
+        run: Set-Location "C:\\docker\\berlinclock"
 
-    - name: Pull images
-      run: docker compose pull
+      - name: Pull images
+        run: docker compose pull
 
-    - name: Restart services
-      run: docker compose up -d
+      - name: Restart services
+        run: docker compose up -d
 
