@@ -7,7 +7,6 @@ defaults:
     shell: powershell
 jobs:
   docker-deploy:
-    needs: docker-build
     runs-on:
       - self-hosted
       - Windows
