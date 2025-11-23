@@ -4,21 +4,14 @@ on:
 jobs:
   deploy:
     runs-on: [self-hosted, Windows, X64]
-
     defaults:
-      run:
-        shell: powershell
-
+      run: { shell: powershell }
     steps:
-      - name: Login to GHCR
-        run: echo "${{ secrets.GHCR_PAT }}" |
-             docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-      - name: Change directory
+      - name: Login GHCR
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Change Directory
         run: Set-Location "C:\\docker\\berlinclock"
-
-      - name: Pull new images
+      - name: Pull Images
         run: docker compose pull
-
-      - name: Restart containers
+      - name: Restart
         run: docker compose up -d

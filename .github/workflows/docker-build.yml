@@ -1,9 +1,7 @@
 name: Docker Build
-
 on:
-  push:
-    branches: ["main"]
-
+  push: { branches: ["main"] }
 jobs:
   docker_build:
+    needs: codeql
     uses: ./.github/workflows/reusable-docker-build.yml

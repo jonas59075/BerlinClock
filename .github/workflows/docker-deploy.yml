@@ -1,9 +1,7 @@
 name: Docker Deploy
-
 on:
-  push:
-    branches: ["main"]
-
+  push: { branches: ["main"] }
 jobs:
   deploy:
+    needs: release
     uses: ./.github/workflows/reusable-docker-deploy.yml
