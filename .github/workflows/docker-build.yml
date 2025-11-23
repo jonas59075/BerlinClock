@@ -1,0 +1,24 @@
+name: Docker Build
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  docker-build:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+      - name: Build & Push Backend
+        run: |
+          docker build -t ghcr.io/jonas59075/berlinclock-backend:latest backend
+          docker push ghcr.io/jonas59075/berlinclock-backend:latest
+      - name: Build & Push Frontend
+        run: |
+          docker build -t ghcr.io/jonas59075/berlinclock-frontend:latest frontend
+          docker push ghcr.io/jonas59075/berlinclock-frontend:latest

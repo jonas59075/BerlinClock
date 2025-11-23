@@ -1,0 +1,22 @@
+name: Self-Hosted Runner Check
+on:
+  workflow_dispatch:
+defaults:
+  run:
+    shell: powershell
+jobs:
+  check:
+    runs-on:
+      - self-hosted
+      - Windows
+      - X64
+    steps:
+      - name: Runner Info
+        run: |
+          Write-Host "User: $env:USERNAME"
+          Write-Host "Host: $env:COMPUTERNAME"
+          docker version
+      - name: GHCR Login Test
+        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Check Compose Path
+        run: Test-Path "C:\docker\berlinclock\docker-compose.yml"

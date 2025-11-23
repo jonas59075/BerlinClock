@@ -1,0 +1,12 @@
+name: Security CodeQL
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"
+jobs:
+  codeql:
+    uses: github/codeql-action/.github/workflows/codeql-analysis.yml@v3
+    with:
+      languages: go, javascript
