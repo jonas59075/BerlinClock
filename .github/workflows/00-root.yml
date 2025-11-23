@@ -8,5 +8,5 @@ jobs:
   root:
     runs-on: ubuntu-latest
     steps:
-      - name: Root entry
-        run: echo "Root workflow entrypoint"
+      - uses: actions/checkout@v4
+      - run: echo "Root workflow entrypoint"

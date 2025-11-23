@@ -8,6 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Execute Tests
-        run: echo "No tests defined yet."
+      - run: echo "No tests yet"

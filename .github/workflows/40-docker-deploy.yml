@@ -5,5 +5,5 @@ on:
     branches: ["main"]
 
 jobs:
-  run-docker-deploy:
+  run-deploy:
     uses: ./.github/workflows/40-reusable-docker-deploy.yml
