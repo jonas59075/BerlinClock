@@ -98,21 +98,11 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_PAT }}
 
-      # - name: Cleanup old containers
-      #  run: |
-          # docker rm -f berlinclock-backend -ErrorAction SilentlyContinue
-          # docker rm -f berlinclock-frontend -ErrorAction SilentlyContinue
-
-      #    try docker rm -f berlinclock-backend 2>$null except end
-      #    try docker rm -f berlinclock-frontend 2>$null except end
-
-
-      - name: Switch directory
-        run: Set-Location "C:\\docker\\berlinclock"
-
       - name: Pull images
+        working-directory: C:\docker\berlinclock
         run: docker compose pull
 
       - name: Restart services
+        working-directory: C:\docker\berlinclock
         run: docker compose up -d --force-recreate
 
