@@ -104,5 +104,5 @@ jobs:
 
       - name: Restart services
         working-directory: C:\docker\berlinclock
-        run: docker compose up -d --force-recreate
+        run: docker compose up -d --force-recreate --remove-orphans
 
